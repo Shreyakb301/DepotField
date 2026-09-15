@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useDepot } from "@/lib/store";
@@ -8,7 +9,6 @@ import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { Panel } from "@/components/dashboard-box";
 import { SolidBar } from "@/components/solid-bar";
-import { OrderDetailSheet } from "@/components/order-detail-sheet";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 
 const CATEGORY_TONE = ["blue", "amber", "green", "purple", "slate", "red"] as const;
 
-type SortKey = "orderNumber" | "customer" | "items" | "total" | "status" | "updatedAt";
+type SortKey = "orderNumber" | "customer" | "items" | "total" | "status" | "team" | "dueDate" | "updatedAt";
 type SortState = { key: SortKey; dir: "asc" | "desc" };
 
 function SortHead({
@@ -66,11 +66,11 @@ function SortHead({
 
 export default function OverviewPage() {
   const { data } = useDepot();
+  const router = useRouter();
   const [sort, setSort] = useState<SortState>({
     key: "updatedAt",
     dir: "desc",
   });
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const toFulfill = ordersToFulfill(data);
   const lowStock = lowStockProducts(data);
@@ -103,9 +103,17 @@ export default function OverviewPage() {
         return orderTotal(data, o);
       case "status":
         return o.status;
+      case "team":
+        return o.team;
+      case "dueDate":
+        return o.dueDate;
       case "updatedAt":
         return o.updatedAt;
     }
+  }
+
+  function overdue(o: Order): boolean {
+    return o.status !== "Shipped" && o.dueDate < new Date().toISOString().slice(0, 10);
   }
 
   const sortedOrders = useMemo(() => {
@@ -254,6 +262,8 @@ export default function OverviewPage() {
                   <SortHead label="Items" k="items" align="right" sort={sort} onSort={toggleSort} />
                   <SortHead label="Total" k="total" align="right" sort={sort} onSort={toggleSort} />
                   <SortHead label="Status" k="status" sort={sort} onSort={toggleSort} />
+                  <SortHead label="Team" k="team" sort={sort} onSort={toggleSort} />
+                  <SortHead label="Due" k="dueDate" sort={sort} onSort={toggleSort} />
                   <SortHead label="Modified" k="updatedAt" sort={sort} onSort={toggleSort} />
                 </TableRow>
               </TableHeader>
@@ -261,7 +271,7 @@ export default function OverviewPage() {
                 {sortedOrders.map((o) => (
                   <TableRow
                     key={o.id}
-                    onClick={() => setSelectedOrderId(o.id)}
+                    onClick={() => router.push(`/orders/${o.id}`)}
                     className="cursor-pointer border-rule hover:bg-secondary/50"
                   >
                     <TableCell className="font-semibold text-primary">{o.orderNumber}</TableCell>
@@ -272,6 +282,10 @@ export default function OverviewPage() {
                     <TableCell className="text-right text-ink-soft">{formatCurrency(orderTotal(data, o))}</TableCell>
                     <TableCell>
                       <StatusBadge label={o.status} tone={ORDER_STATUS_TONE[o.status]} />
+                    </TableCell>
+                    <TableCell className="text-ink-soft">{o.team}</TableCell>
+                    <TableCell className={overdue(o) ? "font-bold text-solid-red" : "text-ink-faint"}>
+                      {formatDate(o.dueDate)}
                     </TableCell>
                     <TableCell className="text-ink-faint">{formatDate(o.updatedAt)}</TableCell>
                   </TableRow>
@@ -307,11 +321,6 @@ export default function OverviewPage() {
           </div>
         </Panel>
       </div>
-
-      <OrderDetailSheet
-        orderId={selectedOrderId}
-        onOpenChange={(open) => !open && setSelectedOrderId(null)}
-      />
     </div>
   );
 }

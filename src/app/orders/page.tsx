@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/dashboard-box";
 import { StatusBadge } from "@/components/status-badge";
-import { OrderDetailSheet } from "@/components/order-detail-sheet";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ORDER_STATUSES, type OrderStatus } from "@/lib/types";
@@ -23,8 +23,8 @@ const NEXT_ACTION_LABEL: Record<OrderStatus, string> = {
 
 export default function OrdersPage() {
   const { data, advanceOrder } = useDepot();
+  const router = useRouter();
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -47,7 +47,7 @@ export default function OrdersPage() {
     <div>
       <PageHeader
         title="Orders"
-        description="Move customer orders through the fulfillment pipeline. Click an order to view and edit it."
+        description="Move customer orders through the fulfillment pipeline. Click an order to open its ticket."
         action={
           <Link href="/orders/new" className={buttonVariants({ size: "sm" })}>
             <Plus className="size-3.5" />
@@ -79,11 +79,11 @@ export default function OrdersPage() {
                   key={o.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => setSelected(o.id)}
+                  onClick={() => router.push(`/orders/${o.id}`)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      setSelected(o.id);
+                      router.push(`/orders/${o.id}`);
                     }
                   }}
                   className="flex cursor-pointer flex-col gap-1 rounded-md border border-rule p-2.5 text-sm transition-colors hover:border-primary hover:bg-secondary/40"
@@ -115,8 +115,6 @@ export default function OrdersPage() {
           </Panel>
         ))}
       </div>
-
-      <OrderDetailSheet orderId={selected} onOpenChange={(open) => !open && setSelected(null)} />
     </div>
   );
 }

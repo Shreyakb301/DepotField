@@ -331,6 +331,12 @@ export default function InventoryPage() {
                   <dl className="mb-4 grid grid-cols-2 gap-y-2 text-sm">
                     <dt className="text-ink-faint">Category</dt>
                     <dd className="text-ink">{selected.category}</dd>
+                    <dt className="text-ink-faint">Manufacturer</dt>
+                    <dd className="text-ink">{selected.manufacturer}</dd>
+                    <dt className="text-ink-faint">Warranty</dt>
+                    <dd className="text-ink">
+                      {selected.warrantyMonths ? `${selected.warrantyMonths} months` : "No warranty"}
+                    </dd>
                     <dt className="text-ink-faint">Bin</dt>
                     <dd className="text-ink">
                       <Link href="/warehouse" className="text-primary hover:underline">

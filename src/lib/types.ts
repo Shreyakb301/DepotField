@@ -29,6 +29,8 @@ export interface Product {
   sku: string;
   category: Category;
   supplierId: string;
+  manufacturer: string;
+  warrantyMonths?: number;
   stock: number;
   reorderPoint: number;
   reorderQty: number;
@@ -53,6 +55,13 @@ export type OrderPriority = "Low" | "Medium" | "High";
 
 export const ORDER_PRIORITIES: OrderPriority[] = ["Low", "Medium", "High"];
 
+export const FULFILLMENT_TEAMS = ["Team Alpha", "Team Bravo", "Team Charlie", "Team Delta"] as const;
+export type FulfillmentTeam = (typeof FULFILLMENT_TEAMS)[number];
+
+export type ShippingMethod = "Standard" | "Expedited" | "Same-Day";
+
+export const SHIPPING_METHODS: ShippingMethod[] = ["Standard", "Expedited", "Same-Day"];
+
 export interface OrderItem {
   productId: string;
   qty: number;
@@ -66,6 +75,14 @@ export interface Order {
   status: OrderStatus;
   priority: OrderPriority;
   notes?: string;
+  verified: boolean;
+  dueDate: string;
+  team: FulfillmentTeam;
+  shippingMethod: ShippingMethod;
+  isGift: boolean;
+  giftMessage?: string;
+  carrier?: string;
+  trackingNumber?: string;
   createdAt: string;
   updatedAt: string;
 }

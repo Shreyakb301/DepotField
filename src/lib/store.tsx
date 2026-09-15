@@ -11,13 +11,35 @@ import {
 import { createSeedData } from "./seed";
 import type {
   DepotData,
+  FulfillmentTeam,
   OrderItem,
   OrderPriority,
   OrderStatus,
   POStatus,
   ProductStatus,
+  ShippingMethod,
 } from "./types";
-import { ORDER_STATUSES } from "./types";
+import { FULFILLMENT_TEAMS, ORDER_STATUSES } from "./types";
+
+const DUE_DATE_DAYS: Record<OrderPriority, number> = {
+  High: 2,
+  Medium: 5,
+  Low: 10,
+};
+
+const CARRIERS = ["DepotXpress", "Northbound Freight", "Swift Parcel Co."];
+
+function generateTracking(): { carrier: string; trackingNumber: string } {
+  const carrier = CARRIERS[Math.floor(Math.random() * CARRIERS.length)];
+  const prefix = carrier
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+  const digits = Math.floor(100000000 + Math.random() * 899999999);
+  return { carrier, trackingNumber: `${prefix}${digits}` };
+}
 
 const STORAGE_KEY = "depotfield:data:v1";
 
@@ -51,6 +73,11 @@ interface DepotContextValue {
   advanceOrder: (orderId: string) => void;
   updateOrderPriority: (orderId: string, priority: OrderPriority) => void;
   updateOrderNotes: (orderId: string, notes: string) => void;
+  updateOrderDueDate: (orderId: string, dueDate: string) => void;
+  setOrderVerified: (orderId: string, verified: boolean) => void;
+  updateOrderTeam: (orderId: string, team: FulfillmentTeam) => void;
+  updateOrderShippingMethod: (orderId: string, method: ShippingMethod) => void;
+  updateOrderGift: (orderId: string, isGift: boolean, giftMessage?: string) => void;
   createOrder: (input: {
     customer: string;
     items: OrderItem[];
@@ -144,6 +171,58 @@ export function DepotProvider({ children }: { children: ReactNode }) {
       }));
     }
 
+    function updateOrderDueDate(orderId: string, dueDate: string) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId ? { ...o, dueDate, updatedAt: todayISO() } : o,
+        ),
+      }));
+    }
+
+    function setOrderVerified(orderId: string, verified: boolean) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId ? { ...o, verified, updatedAt: todayISO() } : o,
+        ),
+      }));
+    }
+
+    function updateOrderTeam(orderId: string, team: FulfillmentTeam) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId ? { ...o, team, updatedAt: todayISO() } : o,
+        ),
+      }));
+    }
+
+    function updateOrderShippingMethod(orderId: string, shippingMethod: ShippingMethod) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId ? { ...o, shippingMethod, updatedAt: todayISO() } : o,
+        ),
+      }));
+    }
+
+    function updateOrderGift(orderId: string, isGift: boolean, giftMessage?: string) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                isGift,
+                giftMessage: isGift ? giftMessage?.trim() || undefined : undefined,
+                updatedAt: todayISO(),
+              }
+            : o,
+        ),
+      }));
+    }
+
     function advanceOrder(orderId: string) {
       setData((prev) => ({
         ...prev,
@@ -151,10 +230,14 @@ export function DepotProvider({ children }: { children: ReactNode }) {
           if (o.id !== orderId) return o;
           const idx = ORDER_STATUSES.indexOf(o.status);
           if (idx === -1 || idx === ORDER_STATUSES.length - 1) return o;
+          const nextStatus = ORDER_STATUSES[idx + 1];
+          const shipping =
+            nextStatus === "Shipped" && !o.trackingNumber ? generateTracking() : {};
           return {
             ...o,
-            status: ORDER_STATUSES[idx + 1],
+            status: nextStatus,
             updatedAt: todayISO(),
+            ...shipping,
           };
         }),
       }));
@@ -174,6 +257,7 @@ export function DepotProvider({ children }: { children: ReactNode }) {
         }, 4000);
         const orderNumber = `ORD-${maxNum + 1}`;
         const today = todayISO();
+        const team = FULFILLMENT_TEAMS[prev.orders.length % FULFILLMENT_TEAMS.length];
         return {
           ...prev,
           orders: [
@@ -186,6 +270,11 @@ export function DepotProvider({ children }: { children: ReactNode }) {
               status: "New" as const,
               priority: input.priority,
               notes: input.notes?.trim() || undefined,
+              verified: false,
+              dueDate: addDays(today, DUE_DATE_DAYS[input.priority]),
+              team,
+              shippingMethod: "Standard" as const,
+              isGift: false,
               createdAt: today,
               updatedAt: today,
             },
@@ -342,6 +431,11 @@ export function DepotProvider({ children }: { children: ReactNode }) {
       advanceOrder,
       updateOrderPriority,
       updateOrderNotes,
+      updateOrderDueDate,
+      setOrderVerified,
+      updateOrderTeam,
+      updateOrderShippingMethod,
+      updateOrderGift,
       createOrder,
       receivePO,
       releaseQualityHold,
