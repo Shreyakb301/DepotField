@@ -8,8 +8,10 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function formatDate(iso: string): string {
+export function formatDate(iso: string | undefined): string {
+  if (!iso) return "—";
   const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return "—";
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",

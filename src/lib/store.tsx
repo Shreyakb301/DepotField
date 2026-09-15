@@ -12,10 +12,12 @@ import { createSeedData } from "./seed";
 import type {
   DepotData,
   FulfillmentTeam,
+  Order,
   OrderItem,
   OrderPriority,
   OrderStatus,
   POStatus,
+  Product,
   ProductStatus,
   ShippingMethod,
 } from "./types";
@@ -55,6 +57,67 @@ function addDays(iso: string, days: number): string {
 
 function genId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/**
+ * Fill in defaults for fields that didn't exist yet when a browser's
+ * localStorage was last written (e.g. a session from before "dueDate" or
+ * "team" existed on Order). Without this, old saved data crashes the app
+ * the moment it hits a field that's now assumed to be present.
+ */
+function normalizeOrder(o: Partial<Order>, index: number): Order {
+  const priority: OrderPriority = o.priority ?? "Medium";
+  const createdAt = o.createdAt ?? todayISO();
+  return {
+    id: o.id ?? genId("o"),
+    orderNumber: o.orderNumber ?? `ORD-${4000 + index}`,
+    customer: o.customer ?? "Unknown customer",
+    items: Array.isArray(o.items) ? o.items : [],
+    status: o.status ?? "New",
+    priority,
+    notes: o.notes,
+    verified: o.verified ?? false,
+    dueDate: o.dueDate ?? addDays(createdAt, DUE_DATE_DAYS[priority]),
+    team: o.team ?? FULFILLMENT_TEAMS[index % FULFILLMENT_TEAMS.length],
+    shippingMethod: o.shippingMethod ?? "Standard",
+    isGift: o.isGift ?? false,
+    giftMessage: o.giftMessage,
+    carrier: o.carrier,
+    trackingNumber: o.trackingNumber,
+    createdAt,
+    updatedAt: o.updatedAt ?? createdAt,
+  };
+}
+
+function normalizeProduct(p: Partial<Product>): Product {
+  return {
+    id: p.id ?? genId("p"),
+    name: p.name ?? "Unknown product",
+    sku: p.sku ?? "—",
+    category: p.category ?? "Home Decor",
+    supplierId: p.supplierId ?? "",
+    manufacturer: p.manufacturer ?? "Unknown",
+    warrantyMonths: p.warrantyMonths,
+    stock: p.stock ?? 0,
+    reorderPoint: p.reorderPoint ?? 0,
+    reorderQty: p.reorderQty ?? 0,
+    weeklyDemand: p.weeklyDemand ?? 0,
+    unitCost: p.unitCost ?? 0,
+    unitPrice: p.unitPrice ?? 0,
+    bin: p.bin ?? "A-01",
+    status: p.status ?? "active",
+    lastRestocked: p.lastRestocked ?? todayISO(),
+  };
+}
+
+function normalizeData(raw: Partial<DepotData>): DepotData {
+  return {
+    products: Array.isArray(raw.products) ? raw.products.map(normalizeProduct) : [],
+    suppliers: Array.isArray(raw.suppliers) ? raw.suppliers : [],
+    orders: Array.isArray(raw.orders) ? raw.orders.map(normalizeOrder) : [],
+    purchaseOrders: Array.isArray(raw.purchaseOrders) ? raw.purchaseOrders : [],
+    qualityHolds: Array.isArray(raw.qualityHolds) ? raw.qualityHolds : [],
+  };
 }
 
 interface ReceiptLine {
@@ -104,7 +167,7 @@ export function DepotProvider({ children }: { children: ReactNode }) {
         // One-time hydration from localStorage after mount; server and first
         // client render intentionally use seed data to avoid a hydration mismatch.
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setData(JSON.parse(raw) as DepotData);
+        setData(normalizeData(JSON.parse(raw) as Partial<DepotData>));
       }
     } catch {
       // ignore malformed storage, fall back to seed data already in state
