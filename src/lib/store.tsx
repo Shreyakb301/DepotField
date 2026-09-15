@@ -11,6 +11,8 @@ import {
 import { createSeedData } from "./seed";
 import type {
   DepotData,
+  OrderItem,
+  OrderPriority,
   OrderStatus,
   POStatus,
   ProductStatus,
@@ -47,6 +49,12 @@ interface DepotContextValue {
   updateProductStatus: (productId: string, status: ProductStatus) => void;
   setOrderStatus: (orderId: string, status: OrderStatus) => void;
   advanceOrder: (orderId: string) => void;
+  createOrder: (input: {
+    customer: string;
+    items: OrderItem[];
+    priority: OrderPriority;
+    notes?: string;
+  }) => string;
   receivePO: (poId: string, receipts: ReceiptLine[]) => void;
   releaseQualityHold: (entryId: string) => void;
   rejectQualityHold: (entryId: string) => void;
@@ -128,6 +136,41 @@ export function DepotProvider({ children }: { children: ReactNode }) {
           };
         }),
       }));
+    }
+
+    function createOrder(input: {
+      customer: string;
+      items: OrderItem[];
+      priority: OrderPriority;
+      notes?: string;
+    }): string {
+      const id = genId("o");
+      setData((prev) => {
+        const maxNum = prev.orders.reduce((max, o) => {
+          const n = Number(o.orderNumber.split("-")[1]);
+          return Number.isFinite(n) ? Math.max(max, n) : max;
+        }, 4000);
+        const orderNumber = `ORD-${maxNum + 1}`;
+        const today = todayISO();
+        return {
+          ...prev,
+          orders: [
+            ...prev.orders,
+            {
+              id,
+              orderNumber,
+              customer: input.customer.trim(),
+              items: input.items,
+              status: "New" as const,
+              priority: input.priority,
+              notes: input.notes?.trim() || undefined,
+              createdAt: today,
+              updatedAt: today,
+            },
+          ],
+        };
+      });
+      return id;
     }
 
     function receivePO(poId: string, receipts: ReceiptLine[]) {
@@ -275,6 +318,7 @@ export function DepotProvider({ children }: { children: ReactNode }) {
       updateProductStatus,
       setOrderStatus,
       advanceOrder,
+      createOrder,
       receivePO,
       releaseQualityHold,
       rejectQualityHold,

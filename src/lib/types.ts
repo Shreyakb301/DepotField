@@ -49,6 +49,10 @@ export const ORDER_STATUSES: OrderStatus[] = [
   "Shipped",
 ];
 
+export type OrderPriority = "Low" | "Medium" | "High";
+
+export const ORDER_PRIORITIES: OrderPriority[] = ["Low", "Medium", "High"];
+
 export interface OrderItem {
   productId: string;
   qty: number;
@@ -60,6 +64,8 @@ export interface Order {
   customer: string;
   items: OrderItem[];
   status: OrderStatus;
+  priority: OrderPriority;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
