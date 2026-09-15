@@ -1,69 +1,197 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import {
+  ClipboardList,
+  AlertTriangle,
+  DollarSign,
+  Warehouse as WarehouseIcon,
+  ArrowRight,
+  Clock,
+  ShieldAlert,
+} from "lucide-react";
+import { useDepot } from "@/lib/store";
+import { PageHeader } from "@/components/page-header";
+import { KpiCard } from "@/components/kpi-card";
+import { StatusBadge } from "@/components/status-badge";
+import { InventoryByCategoryChart } from "@/components/charts/inventory-by-category-chart";
+import { OrdersByStatusChart } from "@/components/charts/orders-by-status-chart";
+import {
+  inventoryByCategory,
+  inventoryValue,
+  lowStockProducts,
+  ordersByStatus,
+  ordersToFulfill,
+  warehouseCapacityPct,
+} from "@/lib/selectors";
+import { formatCurrency, formatDate } from "@/lib/format";
+
+export default function OverviewPage() {
+  const { data } = useDepot();
+
+  const toFulfill = ordersToFulfill(data);
+  const lowStock = lowStockProducts(data);
+  const value = inventoryValue(data);
+  const capacityPct = warehouseCapacityPct(data);
+  const byCategory = inventoryByCategory(data);
+  const byStatus = ordersByStatus(data);
+
+  const delayedPOs = data.purchaseOrders.filter((po) => po.status === "Delayed");
+  const onHold = data.qualityHolds.filter((q) => q.status === "On Hold");
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div>
+      <PageHeader
+        title="Overview"
+        description="Real-time snapshot of fulfillment, inventory, and warehouse capacity."
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          label="Orders to Fulfill"
+          value={String(toFulfill)}
+          subtext={`${data.orders.length} total orders`}
+          icon={ClipboardList}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <KpiCard
+          label="Low-Stock Items"
+          value={String(lowStock.length)}
+          subtext={lowStock.length > 0 ? "Below reorder point" : "All stocked"}
+          icon={AlertTriangle}
+          tone={lowStock.length > 0 ? "warning" : "default"}
+        />
+        <KpiCard
+          label="Inventory Value"
+          value={formatCurrency(value)}
+          subtext={`${data.products.length} SKUs on hand`}
+          icon={DollarSign}
+        />
+        <KpiCard
+          label="Warehouse Capacity"
+          value={`${capacityPct}%`}
+          subtext="Across 16 bins, A-01–D-04"
+          icon={WarehouseIcon}
+          tone={capacityPct >= 85 ? "warning" : "default"}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">
+            Inventory by Category
+          </h2>
+          <p className="text-xs text-muted-foreground">Units on hand per category</p>
+          <div className="mt-2">
+            <InventoryByCategoryChart data={byCategory} />
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">
+            Orders by Status
+          </h2>
+          <p className="text-xs text-muted-foreground">Where open orders stand right now</p>
+          <div className="mt-2">
+            <OrdersByStatusChart data={byStatus} />
+          </div>
         </div>
-      </main>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <div className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border p-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="size-4 text-amber-600" />
+              <h2 className="text-sm font-semibold text-foreground">
+                Low-Stock Alerts
+              </h2>
+            </div>
+            <Link
+              href="/reorder-planning"
+              className="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline"
+            >
+              Reorder plan <ArrowRight className="size-3" />
+            </Link>
+          </div>
+          <ul className="divide-y divide-border">
+            {lowStock.length === 0 && (
+              <li className="p-4 text-sm text-muted-foreground">
+                No products are currently below their reorder point.
+              </li>
+            )}
+            {lowStock.slice(0, 5).map((p) => (
+              <li key={p.id} className="flex items-center justify-between p-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{p.name}</p>
+                  <p className="text-xs text-muted-foreground">{p.sku} &middot; Bin {p.bin}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-amber-600">
+                    {p.stock} / {p.reorderPoint}
+                  </p>
+                  <p className="text-xs text-muted-foreground">on hand / reorder pt</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border p-4">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="size-4 text-rose-600" />
+              <h2 className="text-sm font-semibold text-foreground">
+                Needs Attention
+              </h2>
+            </div>
+            <Link
+              href="/receiving"
+              className="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline"
+            >
+              Receiving <ArrowRight className="size-3" />
+            </Link>
+          </div>
+          <ul className="divide-y divide-border">
+            {delayedPOs.length === 0 && onHold.length === 0 && (
+              <li className="p-4 text-sm text-muted-foreground">
+                No delayed shipments or quality holds right now.
+              </li>
+            )}
+            {delayedPOs.map((po) => (
+              <li key={po.id} className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-2">
+                  <Clock className="size-3.5 text-rose-500" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{po.poNumber}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Expected {formatDate(po.expectedAt)}
+                    </p>
+                  </div>
+                </div>
+                <StatusBadge label="Delayed" tone="rose" />
+              </li>
+            ))}
+            {onHold.map((q) => {
+              const product = data.products.find((p) => p.id === q.productId);
+              return (
+                <li key={q.id} className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="size-3.5 text-amber-500" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {product?.name ?? "Unknown product"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {q.qty} units — {q.reason}
+                      </p>
+                    </div>
+                  </div>
+                  <StatusBadge label="Quality Hold" tone="amber" />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
