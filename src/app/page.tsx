@@ -68,7 +68,7 @@ export default function OverviewPage() {
           <div className="flex flex-col gap-1.5 text-sm">
             {byCategory.map((c) => (
               <div key={c.category} className="flex items-center gap-2">
-                <span className="w-32 shrink-0 truncate text-ink-soft">{c.category}</span>
+                <span className="w-52 shrink-0 truncate text-ink-soft">{c.category}</span>
                 <AsciiBar value={c.stock} max={maxCategory} width={20} />
                 <span className="w-10 shrink-0 text-right text-ink">{c.stock}</span>
               </div>

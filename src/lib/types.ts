@@ -1,16 +1,16 @@
 export type Category =
-  | "Electronics"
-  | "Apparel"
-  | "Home & Garden"
-  | "Outdoor"
-  | "Office";
+  | "Home Decor"
+  | "Kitchen & Dining"
+  | "Bags & Totes"
+  | "Stationery & Gift"
+  | "Storage & Organisation";
 
 export const CATEGORIES: Category[] = [
-  "Electronics",
-  "Apparel",
-  "Home & Garden",
-  "Outdoor",
-  "Office",
+  "Home Decor",
+  "Kitchen & Dining",
+  "Bags & Totes",
+  "Stationery & Gift",
+  "Storage & Organisation",
 ];
 
 export type ProductStatus = "active" | "quality_hold" | "discontinued";

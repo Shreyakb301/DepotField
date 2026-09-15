@@ -7,100 +7,115 @@ import type {
   Supplier,
 } from "./types";
 
+/**
+ * Product names, SKUs (stock codes), prices, and order line items below are
+ * sourced from the UCI "Online Retail" dataset (a real UK gift & homeware
+ * e-commerce retailer, Dec 2010–Dec 2011): archive.ics.uci.edu/dataset/352.
+ * Warehouse-specific fields that no public dataset has — suppliers, bins,
+ * reorder points, purchase orders, quality holds — are invented for the
+ * demo, and order dates are shifted to be recent rather than the original
+ * 2011 timestamps so the whole app reads as "today."
+ */
+
 const suppliers: Supplier[] = [
   {
     id: "sup-1",
-    name: "Northline Distributors",
-    contactName: "Dana Whitfield",
-    email: "dana.whitfield@northline-dist.com",
-    leadTimeDays: 5,
+    name: "Cotswold Home & Gift",
+    contactName: "Alice Fenwick",
+    email: "alice.fenwick@cotswoldhg.co.uk",
+    leadTimeDays: 6,
   },
   {
     id: "sup-2",
-    name: "Cascade Supply Co.",
-    contactName: "Marco Ibarra",
-    email: "marco.ibarra@cascadesupply.com",
-    leadTimeDays: 7,
+    name: "Blackthorn Wholesale",
+    contactName: "James Carrow",
+    email: "james.carrow@blackthornws.co.uk",
+    leadTimeDays: 8,
   },
   {
     id: "sup-3",
-    name: "Meridian Wholesale",
-    contactName: "Priya Nandan",
-    email: "priya.nandan@meridianwholesale.com",
-    leadTimeDays: 4,
+    name: "Ridgeway Trading Co.",
+    contactName: "Sonia Patel",
+    email: "sonia.patel@ridgewaytrading.co.uk",
+    leadTimeDays: 5,
   },
   {
     id: "sup-4",
-    name: "Ironclad Logistics",
-    contactName: "Tom Reyes",
-    email: "tom.reyes@ironcladlog.com",
-    leadTimeDays: 10,
+    name: "Meadowcroft Imports",
+    contactName: "Owen Hargrave",
+    email: "owen.hargrave@meadowcroftimports.co.uk",
+    leadTimeDays: 7,
   },
   {
     id: "sup-5",
-    name: "Brightpeak Goods",
-    contactName: "Sarah Colton",
-    email: "sarah.colton@brightpeakgoods.com",
-    leadTimeDays: 6,
+    name: "Harrowgate Distribution",
+    contactName: "Freya Sutcliffe",
+    email: "freya.sutcliffe@harrowgatedist.co.uk",
+    leadTimeDays: 9,
   },
 ];
 
+// StockCode / Description / price are real (UCI Online Retail dataset).
 const products: Product[] = [
-  { id: "p1", name: "Wireless Mouse", sku: "EL-1001", category: "Electronics", supplierId: "sup-1", stock: 180, reorderPoint: 60, reorderQty: 150, weeklyDemand: 40, unitCost: 8.5, unitPrice: 19.99, bin: "A-01", status: "active", lastRestocked: "2026-09-02" },
-  { id: "p2", name: "USB-C Hub 6-Port", sku: "EL-1002", category: "Electronics", supplierId: "sup-1", stock: 45, reorderPoint: 50, reorderQty: 120, weeklyDemand: 22, unitCost: 12, unitPrice: 29.99, bin: "A-02", status: "active", lastRestocked: "2026-08-29" },
-  { id: "p3", name: "Bluetooth Speaker Mini", sku: "EL-1003", category: "Electronics", supplierId: "sup-2", stock: 96, reorderPoint: 40, reorderQty: 100, weeklyDemand: 18, unitCost: 15, unitPrice: 34.99, bin: "A-03", status: "active", lastRestocked: "2026-09-05" },
-  { id: "p4", name: "Noise-Cancelling Headphones", sku: "EL-1004", category: "Electronics", supplierId: "sup-2", stock: 22, reorderPoint: 35, reorderQty: 80, weeklyDemand: 15, unitCost: 42, unitPrice: 89.99, bin: "A-04", status: "quality_hold", lastRestocked: "2026-09-05" },
-  { id: "p5", name: "Men's Fleece Jacket", sku: "AP-2001", category: "Apparel", supplierId: "sup-3", stock: 140, reorderPoint: 50, reorderQty: 120, weeklyDemand: 25, unitCost: 18, unitPrice: 44.99, bin: "B-01", status: "active", lastRestocked: "2026-08-30" },
-  { id: "p6", name: "Women's Running Shorts", sku: "AP-2002", category: "Apparel", supplierId: "sup-3", stock: 75, reorderPoint: 45, reorderQty: 100, weeklyDemand: 20, unitCost: 9, unitPrice: 24.99, bin: "B-02", status: "active", lastRestocked: "2026-09-01" },
-  { id: "p7", name: "Unisex Beanie", sku: "AP-2003", category: "Apparel", supplierId: "sup-4", stock: 28, reorderPoint: 40, reorderQty: 90, weeklyDemand: 30, unitCost: 4, unitPrice: 12.99, bin: "B-03", status: "active", lastRestocked: "2026-08-25" },
-  { id: "p8", name: "Ceramic Plant Pot", sku: "HG-3001", category: "Home & Garden", supplierId: "sup-4", stock: 110, reorderPoint: 35, reorderQty: 80, weeklyDemand: 12, unitCost: 6, unitPrice: 16.99, bin: "B-04", status: "active", lastRestocked: "2026-08-27" },
-  { id: "p9", name: "LED Desk Lamp", sku: "HG-3002", category: "Home & Garden", supplierId: "sup-5", stock: 64, reorderPoint: 30, reorderQty: 70, weeklyDemand: 10, unitCost: 11, unitPrice: 27.99, bin: "C-01", status: "active", lastRestocked: "2026-08-27" },
-  { id: "p10", name: "Memory Foam Pillow", sku: "HG-3003", category: "Home & Garden", supplierId: "sup-5", stock: 18, reorderPoint: 30, reorderQty: 70, weeklyDemand: 14, unitCost: 9.5, unitPrice: 22.99, bin: "C-02", status: "active", lastRestocked: "2026-08-27" },
-  { id: "p11", name: "Camping Tent 2-Person", sku: "OD-4001", category: "Outdoor", supplierId: "sup-2", stock: 33, reorderPoint: 20, reorderQty: 40, weeklyDemand: 6, unitCost: 55, unitPrice: 129.99, bin: "C-03", status: "active", lastRestocked: "2026-09-04" },
-  { id: "p12", name: "Insulated Water Bottle", sku: "OD-4002", category: "Outdoor", supplierId: "sup-1", stock: 152, reorderPoint: 50, reorderQty: 120, weeklyDemand: 35, unitCost: 5.5, unitPrice: 15.99, bin: "C-04", status: "active", lastRestocked: "2026-09-08" },
-  { id: "p13", name: "Trail Backpack 30L", sku: "OD-4003", category: "Outdoor", supplierId: "sup-3", stock: 12, reorderPoint: 25, reorderQty: 50, weeklyDemand: 9, unitCost: 24, unitPrice: 59.99, bin: "D-01", status: "quality_hold", lastRestocked: "2026-08-18" },
-  { id: "p14", name: "Ergonomic Office Chair", sku: "OF-5001", category: "Office", supplierId: "sup-4", stock: 26, reorderPoint: 15, reorderQty: 30, weeklyDemand: 5, unitCost: 85, unitPrice: 189.99, bin: "D-02", status: "active", lastRestocked: "2026-08-23" },
-  { id: "p15", name: "Standing Desk Converter", sku: "OF-5002", category: "Office", supplierId: "sup-5", stock: 8, reorderPoint: 15, reorderQty: 30, weeklyDemand: 6, unitCost: 60, unitPrice: 149.99, bin: "D-03", status: "active", lastRestocked: "2026-08-20" },
+  { id: "p1", name: "White Hanging Heart T-Light Holder", sku: "85123A", category: "Home Decor", supplierId: "sup-1", stock: 210, reorderPoint: 70, reorderQty: 180, weeklyDemand: 45, unitCost: 1.55, unitPrice: 3.15, bin: "A-01", status: "active", lastRestocked: "2026-09-03" },
+  { id: "p2", name: "Victorian Glass Hanging T-Light", sku: "22178", category: "Home Decor", supplierId: "sup-1", stock: 38, reorderPoint: 45, reorderQty: 100, weeklyDemand: 28, unitCost: 0.8, unitPrice: 1.65, bin: "A-02", status: "active", lastRestocked: "2026-08-27" },
+  { id: "p3", name: "Rabbit Night Light", sku: "23084", category: "Home Decor", supplierId: "sup-1", stock: 30, reorderPoint: 40, reorderQty: 90, weeklyDemand: 26, unitCost: 1.15, unitPrice: 2.38, bin: "A-03", status: "active", lastRestocked: "2026-08-29" },
+  { id: "p4", name: "Regency Cakestand 3 Tier", sku: "22423", category: "Kitchen & Dining", supplierId: "sup-2", stock: 14, reorderPoint: 25, reorderQty: 40, weeklyDemand: 12, unitCost: 7.0, unitPrice: 13.99, bin: "B-01", status: "quality_hold", lastRestocked: "2026-08-18" },
+  { id: "p5", name: "Set Of 3 Cake Tins Pantry Design", sku: "22720", category: "Kitchen & Dining", supplierId: "sup-2", stock: 86, reorderPoint: 30, reorderQty: 70, weeklyDemand: 15, unitCost: 2.9, unitPrice: 5.85, bin: "B-02", status: "active", lastRestocked: "2026-08-24" },
+  { id: "p6", name: "Retrospot Tea Set Ceramic 11 Pc", sku: "22139", category: "Kitchen & Dining", supplierId: "sup-2", stock: 9, reorderPoint: 20, reorderQty: 35, weeklyDemand: 8, unitCost: 2.85, unitPrice: 5.75, bin: "B-03", status: "quality_hold", lastRestocked: "2026-09-05" },
+  { id: "p7", name: "Jumbo Bag Red Retrospot", sku: "85099B", category: "Bags & Totes", supplierId: "sup-3", stock: 165, reorderPoint: 55, reorderQty: 130, weeklyDemand: 38, unitCost: 1.2, unitPrice: 2.5, bin: "C-01", status: "active", lastRestocked: "2026-09-01" },
+  { id: "p8", name: "Lunch Bag Red Retrospot", sku: "20725", category: "Bags & Totes", supplierId: "sup-3", stock: 33, reorderPoint: 40, reorderQty: 90, weeklyDemand: 24, unitCost: 1.0, unitPrice: 2.15, bin: "C-02", status: "active", lastRestocked: "2026-08-22" },
+  { id: "p9", name: "Jumbo Storage Bag Suki", sku: "21931", category: "Bags & Totes", supplierId: "sup-3", stock: 71, reorderPoint: 30, reorderQty: 70, weeklyDemand: 14, unitCost: 1.3, unitPrice: 2.75, bin: "C-03", status: "active", lastRestocked: "2026-08-28" },
+  { id: "p10", name: "Party Bunting", sku: "47566", category: "Stationery & Gift", supplierId: "sup-4", stock: 58, reorderPoint: 25, reorderQty: 60, weeklyDemand: 16, unitCost: 2.75, unitPrice: 5.8, bin: "D-01", status: "active", lastRestocked: "2026-08-26" },
+  { id: "p11", name: "Paper Chain Kit 50's Christmas", sku: "22086", category: "Stationery & Gift", supplierId: "sup-4", stock: 19, reorderPoint: 30, reorderQty: 70, weeklyDemand: 22, unitCost: 1.6, unitPrice: 3.35, bin: "D-02", status: "active", lastRestocked: "2026-08-20" },
+  { id: "p12", name: "Vintage Snap Cards", sku: "21790", category: "Stationery & Gift", supplierId: "sup-4", stock: 96, reorderPoint: 35, reorderQty: 80, weeklyDemand: 20, unitCost: 0.45, unitPrice: 1.0, bin: "D-03", status: "active", lastRestocked: "2026-08-30" },
+  { id: "p13", name: "Recipe Box Pantry Yellow Design", sku: "22666", category: "Storage & Organisation", supplierId: "sup-5", stock: 44, reorderPoint: 20, reorderQty: 45, weeklyDemand: 9, unitCost: 1.75, unitPrice: 3.7, bin: "A-04", status: "active", lastRestocked: "2026-08-25" },
+  { id: "p14", name: "Wooden Picture Frame White Finish", sku: "82482", category: "Storage & Organisation", supplierId: "sup-5", stock: 11, reorderPoint: 20, reorderQty: 45, weeklyDemand: 7, unitCost: 1.5, unitPrice: 3.1, bin: "B-04", status: "active", lastRestocked: "2026-08-19" },
+  { id: "p15", name: "Set/5 Red Retrospot Lid Glass Bowls", sku: "20914", category: "Storage & Organisation", supplierId: "sup-5", stock: 27, reorderPoint: 25, reorderQty: 55, weeklyDemand: 11, unitCost: 1.6, unitPrice: 3.3, bin: "C-04", status: "active", lastRestocked: "2026-08-21" },
 ];
 
+// Line items (product + qty) and customer IDs are real invoices/customers
+// from the dataset; order status, dates, and order numbers are simulated.
 const orders: Order[] = [
-  { id: "o1", orderNumber: "ORD-3001", customer: "Elena Brooks", items: [{ productId: "p1", qty: 2 }, { productId: "p12", qty: 1 }], status: "Shipped", createdAt: "2026-08-30", updatedAt: "2026-09-02" },
-  { id: "o2", orderNumber: "ORD-3002", customer: "Marcus Yun", items: [{ productId: "p5", qty: 1 }], status: "Shipped", createdAt: "2026-08-31", updatedAt: "2026-09-03" },
-  { id: "o3", orderNumber: "ORD-3003", customer: "Priya Shah", items: [{ productId: "p9", qty: 1 }, { productId: "p8", qty: 2 }], status: "Shipped", createdAt: "2026-09-01", updatedAt: "2026-09-04" },
-  { id: "o4", orderNumber: "ORD-3004", customer: "Jordan Blake", items: [{ productId: "p3", qty: 1 }], status: "Shipped", createdAt: "2026-09-02", updatedAt: "2026-09-05" },
-  { id: "o5", orderNumber: "ORD-3005", customer: "Sofia Martins", items: [{ productId: "p6", qty: 2 }, { productId: "p7", qty: 1 }], status: "Shipped", createdAt: "2026-09-03", updatedAt: "2026-09-06" },
-  { id: "o6", orderNumber: "ORD-3006", customer: "Ken Osei", items: [{ productId: "p11", qty: 1 }], status: "Packed", createdAt: "2026-09-06", updatedAt: "2026-09-10" },
-  { id: "o7", orderNumber: "ORD-3007", customer: "Grace Liu", items: [{ productId: "p1", qty: 1 }, { productId: "p2", qty: 1 }], status: "Packed", createdAt: "2026-09-07", updatedAt: "2026-09-11" },
-  { id: "o8", orderNumber: "ORD-3008", customer: "Diego Fernandez", items: [{ productId: "p14", qty: 1 }], status: "Packed", createdAt: "2026-09-08", updatedAt: "2026-09-11" },
-  { id: "o9", orderNumber: "ORD-3009", customer: "Amara Johnson", items: [{ productId: "p12", qty: 3 }], status: "Packed", createdAt: "2026-09-08", updatedAt: "2026-09-12" },
-  { id: "o10", orderNumber: "ORD-3010", customer: "Liam O'Connor", items: [{ productId: "p4", qty: 1 }], status: "Picking", createdAt: "2026-09-10", updatedAt: "2026-09-12" },
-  { id: "o11", orderNumber: "ORD-3011", customer: "Nina Petrov", items: [{ productId: "p5", qty: 1 }, { productId: "p6", qty: 1 }], status: "Picking", createdAt: "2026-09-10", updatedAt: "2026-09-12" },
-  { id: "o12", orderNumber: "ORD-3012", customer: "Owen Clarke", items: [{ productId: "p15", qty: 1 }], status: "Picking", createdAt: "2026-09-11", updatedAt: "2026-09-13" },
-  { id: "o13", orderNumber: "ORD-3013", customer: "Maya Singh", items: [{ productId: "p3", qty: 2 }], status: "Picking", createdAt: "2026-09-11", updatedAt: "2026-09-13" },
-  { id: "o14", orderNumber: "ORD-3014", customer: "Tyler Brooks", items: [{ productId: "p13", qty: 1 }], status: "New", createdAt: "2026-09-12", updatedAt: "2026-09-12" },
-  { id: "o15", orderNumber: "ORD-3015", customer: "Hana Kobayashi", items: [{ productId: "p9", qty: 1 }, { productId: "p10", qty: 1 }], status: "New", createdAt: "2026-09-13", updatedAt: "2026-09-13" },
-  { id: "o16", orderNumber: "ORD-3016", customer: "Felix Moreau", items: [{ productId: "p1", qty: 3 }], status: "New", createdAt: "2026-09-13", updatedAt: "2026-09-13" },
-  { id: "o17", orderNumber: "ORD-3017", customer: "Ava Thompson", items: [{ productId: "p7", qty: 2 }, { productId: "p8", qty: 1 }], status: "New", createdAt: "2026-09-14", updatedAt: "2026-09-14" },
-  { id: "o18", orderNumber: "ORD-3018", customer: "Noah Kim", items: [{ productId: "p14", qty: 1 }, { productId: "p2", qty: 1 }], status: "New", createdAt: "2026-09-14", updatedAt: "2026-09-14" },
+  { id: "o1", orderNumber: "ORD-4001", customer: "Customer #18109", items: [{ productId: "p1", qty: 3 }], status: "Shipped", createdAt: "2026-08-30", updatedAt: "2026-09-02" },
+  { id: "o2", orderNumber: "ORD-4002", customer: "Customer #14064", items: [{ productId: "p2", qty: 6 }], status: "Shipped", createdAt: "2026-08-30", updatedAt: "2026-09-02" },
+  { id: "o3", orderNumber: "ORD-4003", customer: "Customer #16496", items: [{ productId: "p3", qty: 6 }], status: "Shipped", createdAt: "2026-08-31", updatedAt: "2026-09-03" },
+  { id: "o4", orderNumber: "ORD-4004", customer: "Customer #14247", items: [{ productId: "p4", qty: 1 }], status: "Shipped", createdAt: "2026-09-01", updatedAt: "2026-09-04" },
+  { id: "o5", orderNumber: "ORD-4005", customer: "Customer #16923", items: [{ productId: "p5", qty: 3 }], status: "Shipped", createdAt: "2026-09-02", updatedAt: "2026-09-05" },
+  { id: "o6", orderNumber: "ORD-4006", customer: "Customer #14862", items: [{ productId: "p6", qty: 6 }], status: "Packed", createdAt: "2026-09-05", updatedAt: "2026-09-09" },
+  { id: "o7", orderNumber: "ORD-4007", customer: "Customer #14903", items: [{ productId: "p7", qty: 3 }], status: "Packed", createdAt: "2026-09-06", updatedAt: "2026-09-10" },
+  { id: "o8", orderNumber: "ORD-4008", customer: "Customer #14587", items: [{ productId: "p8", qty: 1 }], status: "Packed", createdAt: "2026-09-06", updatedAt: "2026-09-10" },
+  { id: "o9", orderNumber: "ORD-4009", customer: "Customer #16686", items: [{ productId: "p9", qty: 2 }], status: "Packed", createdAt: "2026-09-07", updatedAt: "2026-09-11" },
+  { id: "o10", orderNumber: "ORD-4010", customer: "Customer #13614", items: [{ productId: "p10", qty: 1 }], status: "Packed", createdAt: "2026-09-08", updatedAt: "2026-09-11" },
+  { id: "o11", orderNumber: "ORD-4011", customer: "Customer #16369", items: [{ productId: "p11", qty: 4 }], status: "Picking", createdAt: "2026-09-09", updatedAt: "2026-09-12" },
+  { id: "o12", orderNumber: "ORD-4012", customer: "Customer #15068", items: [{ productId: "p12", qty: 3 }], status: "Picking", createdAt: "2026-09-10", updatedAt: "2026-09-12" },
+  { id: "o13", orderNumber: "ORD-4013", customer: "Customer #15640", items: [{ productId: "p13", qty: 6 }], status: "Picking", createdAt: "2026-09-10", updatedAt: "2026-09-13" },
+  { id: "o14", orderNumber: "ORD-4014", customer: "Customer #17894", items: [{ productId: "p14", qty: 2 }], status: "Picking", createdAt: "2026-09-11", updatedAt: "2026-09-13" },
+  { id: "o15", orderNumber: "ORD-4015", customer: "Customer #17338", items: [{ productId: "p15", qty: 2 }], status: "Picking", createdAt: "2026-09-11", updatedAt: "2026-09-13" },
+  { id: "o16", orderNumber: "ORD-4016", customer: "Customer #14001", items: [{ productId: "p13", qty: 6 }, { productId: "p10", qty: 12 }], status: "New", createdAt: "2026-09-12", updatedAt: "2026-09-12" },
+  { id: "o17", orderNumber: "ORD-4017", customer: "Customer #14056", items: [{ productId: "p15", qty: 1 }, { productId: "p8", qty: 2 }], status: "New", createdAt: "2026-09-13", updatedAt: "2026-09-13" },
+  { id: "o18", orderNumber: "ORD-4018", customer: "Customer #14214", items: [{ productId: "p4", qty: 2 }, { productId: "p12", qty: 12 }, { productId: "p5", qty: 3 }], status: "New", createdAt: "2026-09-13", updatedAt: "2026-09-13" },
+  { id: "o19", orderNumber: "ORD-4019", customer: "Customer #12886", items: [{ productId: "p11", qty: 12 }, { productId: "p4", qty: 2 }], status: "New", createdAt: "2026-09-14", updatedAt: "2026-09-14" },
+  { id: "o20", orderNumber: "ORD-4020", customer: "Customer #18158", items: [{ productId: "p8", qty: 10 }, { productId: "p7", qty: 10 }], status: "New", createdAt: "2026-09-14", updatedAt: "2026-09-14" },
 ];
 
 const purchaseOrders: PurchaseOrder[] = [
-  { id: "po-1", poNumber: "PO-1001", supplierId: "sup-1", items: [{ productId: "p1", qtyOrdered: 150, qtyReceived: 0 }], status: "In Transit", orderedAt: "2026-09-10", expectedAt: "2026-09-16" },
-  { id: "po-2", poNumber: "PO-1002", supplierId: "sup-2", items: [{ productId: "p4", qtyOrdered: 80, qtyReceived: 22 }, { productId: "p3", qtyOrdered: 40, qtyReceived: 40 }], status: "Partially Received", orderedAt: "2026-08-28", expectedAt: "2026-09-04", receivedAt: "2026-09-05" },
-  { id: "po-3", poNumber: "PO-1003", supplierId: "sup-3", items: [{ productId: "p7", qtyOrdered: 90, qtyReceived: 0 }], status: "Pending", orderedAt: "2026-09-12", expectedAt: "2026-09-19" },
-  { id: "po-4", poNumber: "PO-1004", supplierId: "sup-4", items: [{ productId: "p13", qtyOrdered: 40, qtyReceived: 0 }], status: "Delayed", orderedAt: "2026-08-30", expectedAt: "2026-09-08" },
-  { id: "po-5", poNumber: "PO-1005", supplierId: "sup-5", items: [{ productId: "p10", qtyOrdered: 70, qtyReceived: 70 }], status: "Received", orderedAt: "2026-08-20", expectedAt: "2026-08-27", receivedAt: "2026-08-27" },
-  { id: "po-6", poNumber: "PO-1006", supplierId: "sup-1", items: [{ productId: "p12", qtyOrdered: 120, qtyReceived: 60 }], status: "Partially Received", orderedAt: "2026-09-01", expectedAt: "2026-09-08", receivedAt: "2026-09-08" },
-  { id: "po-7", poNumber: "PO-1007", supplierId: "sup-2", items: [{ productId: "p2", qtyOrdered: 120, qtyReceived: 0 }], status: "In Transit", orderedAt: "2026-09-11", expectedAt: "2026-09-18" },
-  { id: "po-8", poNumber: "PO-0998", supplierId: "sup-4", items: [{ productId: "p14", qtyOrdered: 30, qtyReceived: 30 }], status: "Received", orderedAt: "2026-08-15", expectedAt: "2026-08-22", receivedAt: "2026-08-23" },
-  { id: "po-9", poNumber: "PO-0997", supplierId: "sup-3", items: [{ productId: "p13", qtyOrdered: 40, qtyReceived: 12 }], status: "Partially Received", orderedAt: "2026-08-10", expectedAt: "2026-08-17", receivedAt: "2026-08-18" },
+  { id: "po-1", poNumber: "PO-2101", supplierId: "sup-1", items: [{ productId: "p2", qtyOrdered: 100, qtyReceived: 0 }], status: "In Transit", orderedAt: "2026-09-10", expectedAt: "2026-09-16" },
+  { id: "po-2", poNumber: "PO-2102", supplierId: "sup-2", items: [{ productId: "p6", qtyOrdered: 35, qtyReceived: 9 }], status: "Partially Received", orderedAt: "2026-08-28", expectedAt: "2026-09-04", receivedAt: "2026-09-05" },
+  { id: "po-3", poNumber: "PO-2103", supplierId: "sup-4", items: [{ productId: "p11", qtyOrdered: 70, qtyReceived: 0 }], status: "Pending", orderedAt: "2026-09-12", expectedAt: "2026-09-19" },
+  { id: "po-4", poNumber: "PO-2104", supplierId: "sup-5", items: [{ productId: "p14", qtyOrdered: 45, qtyReceived: 0 }], status: "Delayed", orderedAt: "2026-08-30", expectedAt: "2026-09-08" },
+  { id: "po-5", poNumber: "PO-2105", supplierId: "sup-3", items: [{ productId: "p8", qtyOrdered: 90, qtyReceived: 90 }], status: "Received", orderedAt: "2026-08-20", expectedAt: "2026-08-27", receivedAt: "2026-08-27" },
+  { id: "po-6", poNumber: "PO-2106", supplierId: "sup-1", items: [{ productId: "p3", qtyOrdered: 90, qtyReceived: 45 }], status: "Partially Received", orderedAt: "2026-09-01", expectedAt: "2026-09-08", receivedAt: "2026-09-08" },
+  { id: "po-7", poNumber: "PO-2107", supplierId: "sup-5", items: [{ productId: "p15", qtyOrdered: 55, qtyReceived: 0 }], status: "In Transit", orderedAt: "2026-09-11", expectedAt: "2026-09-18" },
+  { id: "po-8", poNumber: "PO-2098", supplierId: "sup-5", items: [{ productId: "p14", qtyOrdered: 45, qtyReceived: 45 }], status: "Received", orderedAt: "2026-08-15", expectedAt: "2026-08-22", receivedAt: "2026-08-23" },
+  { id: "po-9", poNumber: "PO-2097", supplierId: "sup-2", items: [{ productId: "p4", qtyOrdered: 30, qtyReceived: 14 }], status: "Partially Received", orderedAt: "2026-08-10", expectedAt: "2026-08-17", receivedAt: "2026-08-18" },
 ];
 
 const qualityHolds: QualityHoldEntry[] = [
-  { id: "qh-1", productId: "p14", poId: "po-8", qty: 5, reason: "Packaging damaged in transit", flaggedAt: "2026-08-23", status: "Released" },
-  { id: "qh-2", productId: "p4", poId: "po-2", qty: 22, reason: "Damaged cartons found during unloading", flaggedAt: "2026-09-05", status: "On Hold" },
-  { id: "qh-3", productId: "p13", poId: "po-9", qty: 12, reason: "Failed incoming inspection — torn fabric", flaggedAt: "2026-08-18", status: "On Hold" },
-  { id: "qh-4", productId: "p12", poId: "po-6", qty: 8, reason: "Bottles arrived with cracked lids", flaggedAt: "2026-09-08", status: "Rejected" },
+  { id: "qh-1", productId: "p14", poId: "po-8", qty: 5, reason: "Frames arrived with scuffed corners", flaggedAt: "2026-08-23", status: "Released" },
+  { id: "qh-2", productId: "p4", poId: "po-9", qty: 14, reason: "Cakestands arrived chipped in transit", flaggedAt: "2026-08-18", status: "On Hold" },
+  { id: "qh-3", productId: "p6", poId: "po-2", qty: 9, reason: "Teapots found cracked during unboxing", flaggedAt: "2026-09-05", status: "On Hold" },
+  { id: "qh-4", productId: "p3", poId: "po-6", qty: 6, reason: "Night lights failed sample safety check", flaggedAt: "2026-09-08", status: "Rejected" },
 ];
 
 export function createSeedData(): DepotData {
