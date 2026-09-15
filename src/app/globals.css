@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plex-sans);
-  --font-mono: var(--font-plex-mono);
-  --font-heading: var(--font-big-shoulders);
+  --font-sans: var(--font-mono);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -40,95 +40,70 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* Warehouse / ledger brand tokens — not part of the shadcn contract */
-  --color-paper: var(--paper);
-  --color-surface: var(--surface);
+  /* terminal tokens */
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-ink-faint: var(--ink-faint);
   --color-rule: var(--rule);
-  --color-rule-strong: var(--rule-strong);
-  --color-stamp-orange: var(--stamp-orange);
-  --color-stamp-orange-soft: var(--stamp-orange-soft);
-  --color-stamp-flag: var(--stamp-flag);
-  --color-stamp-flag-soft: var(--stamp-flag-soft);
-  --color-stamp-ok: var(--stamp-ok);
-  --color-stamp-ok-soft: var(--stamp-ok-soft);
-  --color-stamp-danger: var(--stamp-danger);
-  --color-stamp-danger-soft: var(--stamp-danger-soft);
-  --color-stamp-info: var(--stamp-info);
-  --color-stamp-info-soft: var(--stamp-info-soft);
-  --color-stamp-cardboard: var(--stamp-cardboard);
-  --color-stamp-cardboard-soft: var(--stamp-cardboard-soft);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
 }
 
 /*
- * DepotField is a single-theme product: kraft-paper ledger, warm ink,
- * one safety-orange accent. There is no dark mode — this is deliberate,
- * the way a printed manifest doesn't have one — so no .dark block here.
+ * DepotField is a monochrome terminal: near-black on near-white, one
+ * typeface throughout, zero corner radius. Color is spent on exactly
+ * two signals — good (green) and bad (red) — nothing is decorative.
+ * Single theme, no dark mode: a terminal session doesn't have one.
  */
 :root {
-  --background: #F1EBDC;
-  --foreground: #1E1B16;
-  --card: #FAF6EC;
-  --card-foreground: #1E1B16;
-  --popover: #FAF6EC;
-  --popover-foreground: #1E1B16;
-  --primary: #C2410C;
-  --primary-foreground: #FFF7EC;
-  --secondary: #E8E0CC;
-  --secondary-foreground: #1E1B16;
-  --muted: #E8E0CC;
-  --muted-foreground: #6E6656;
-  --accent: #E8E0CC;
-  --accent-foreground: #1E1B16;
-  --destructive: #A6321E;
-  --destructive-foreground: #FFF7EC;
-  --border: #D9CFB8;
-  --input: #D9CFB8;
-  --ring: #C2410C;
-  --chart-1: #C2410C;
-  --chart-2: #375A7F;
-  --chart-3: #C98A12;
-  --chart-4: #2F5D3A;
-  --chart-5: #6E4A3F;
-  --radius: 0.1875rem;
-  --sidebar: #1E1B16;
-  --sidebar-foreground: #E8DFC9;
-  --sidebar-primary: #C2410C;
-  --sidebar-primary-foreground: #FFF7EC;
-  --sidebar-accent: #2C2820;
-  --sidebar-accent-foreground: #F1EBDC;
-  --sidebar-border: #332E24;
-  --sidebar-ring: #C2410C;
+  --background: #FFFFFF;
+  --foreground: #0A0A0A;
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0A0A;
+  --primary: #0A0A0A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0F0F0;
+  --secondary-foreground: #0A0A0A;
+  --muted: #F0F0F0;
+  --muted-foreground: #6B6B6B;
+  --accent: #F0F0F0;
+  --accent-foreground: #0A0A0A;
+  --destructive: #B3261E;
+  --destructive-foreground: #FFFFFF;
+  --border: #D4D4D4;
+  --input: #D4D4D4;
+  --ring: #0A0A0A;
+  --chart-1: #0A0A0A;
+  --chart-2: #6B6B6B;
+  --chart-3: #A3A3A3;
+  --chart-4: #1A7F37;
+  --chart-5: #B3261E;
+  --radius: 0px;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0A0A0A;
+  --sidebar-primary: #0A0A0A;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F0F0F0;
+  --sidebar-accent-foreground: #0A0A0A;
+  --sidebar-border: #D4D4D4;
+  --sidebar-ring: #0A0A0A;
 
-  --paper: #F1EBDC;
-  --surface: #FAF6EC;
-  --ink: #1E1B16;
-  --ink-soft: #6E6656;
-  --ink-faint: #A79C86;
-  --rule: #D9CFB8;
-  --rule-strong: #B8AA88;
-  --stamp-orange: #C2410C;
-  --stamp-orange-soft: #F3D9C6;
-  --stamp-flag: #C98A12;
-  --stamp-flag-soft: #F3E1B8;
-  --stamp-ok: #2F5D3A;
-  --stamp-ok-soft: #DCE6DB;
-  --stamp-danger: #A6321E;
-  --stamp-danger-soft: #F1DAD3;
-  --stamp-info: #375A7F;
-  --stamp-info-soft: #DCE4EC;
-  --stamp-cardboard: #8B6A4F;
-  --stamp-cardboard-soft: #E9DDCB;
+  --ink: #0A0A0A;
+  --ink-soft: #6B6B6B;
+  --ink-faint: #A3A3A3;
+  --rule: #D4D4D4;
+  --good: #1A7F37;
+  --bad: #B3261E;
 }
 
 @layer base {
@@ -137,15 +112,24 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--rule) 55%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--rule) 55%, transparent) 1px, transparent 1px);
-    background-size: 32px 32px;
-    background-position: -1px -1px;
-    background-attachment: fixed;
-    background-color: var(--background);
   }
   html {
     @apply font-sans;
+  }
+}
+
+@keyframes cursor-blink {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.cursor-blink {
+  animation: cursor-blink 1.1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-blink {
+    animation: none;
   }
 }

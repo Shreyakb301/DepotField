@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, ArrowRight } from "lucide-react";
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
 import { Input } from "@/components/ui/input";
@@ -15,9 +14,8 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { ORDER_STATUSES, type Order, type OrderStatus } from "@/lib/types";
-import { formatCurrency, formatDate, TONE_HEX, ORDER_STATUS_TONE } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { orderTotal, productById } from "@/lib/selectors";
-import { cn } from "@/lib/utils";
 
 const NEXT_ACTION_LABEL: Record<OrderStatus, string> = {
   New: "Start Picking",
@@ -48,9 +46,7 @@ export default function OrdersPage() {
       .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt)),
   }));
 
-  const selectedOrder: Order | undefined = data.orders.find(
-    (o) => o.id === selected,
-  );
+  const selectedOrder: Order | undefined = data.orders.find((o) => o.id === selected);
 
   return (
     <div>
@@ -59,32 +55,23 @@ export default function OrdersPage() {
         description="Move customer orders through the fulfillment pipeline."
       />
 
-      <div className="relative mb-5 max-w-xs">
-        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-faint" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search customer or order #"
-          className="rounded-[3px] border-rule bg-surface pl-8 text-ink placeholder:text-ink-faint focus-visible:border-primary"
-        />
-      </div>
+      <Input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="search customer or order #"
+        className="mb-5 max-w-xs border-rule bg-background text-ink placeholder:text-ink-faint focus-visible:border-ink"
+      />
 
-      <div className="grid grid-cols-1 gap-px bg-rule sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 divide-y divide-rule border-t-2 border-ink sm:grid-cols-2 sm:divide-y-0 sm:divide-x sm:border-l sm:border-r xl:grid-cols-4">
         {columns.map(({ status, orders }) => (
-          <div
-            key={status}
-            className="flex flex-col bg-background"
-            style={{ borderTop: `3px solid ${TONE_HEX[ORDER_STATUS_TONE[status]]}` }}
-          >
-            <div className="flex items-baseline justify-between px-3 py-2.5">
-              <h2 className="font-heading text-base font-bold text-ink">{status}</h2>
-              <span className="font-mono text-xs text-ink-faint">{orders.length}</span>
+          <div key={status} className="flex flex-col">
+            <div className="flex items-baseline justify-between border-b border-rule px-3 py-2">
+              <h2 className="text-sm font-bold text-ink">{status.toUpperCase()}</h2>
+              <span className="text-xs text-ink-faint">{orders.length}</span>
             </div>
-            <div className="flex flex-col gap-2 px-3 pb-3">
+            <div className="flex flex-col divide-y divide-rule">
               {orders.length === 0 && (
-                <p className="border border-dashed border-rule py-4 text-center text-xs text-ink-faint">
-                  No orders
-                </p>
+                <p className="px-3 py-4 text-xs text-ink-faint">no orders</p>
               )}
               {orders.map((o) => (
                 <div
@@ -98,33 +85,28 @@ export default function OrdersPage() {
                       setSelected(o.id);
                     }
                   }}
-                  className="flex cursor-pointer flex-col gap-1 border border-rule bg-surface p-3 text-left transition-colors hover:border-ink"
+                  className="flex cursor-pointer flex-col gap-1 px-3 py-3 text-sm transition-colors hover:bg-secondary/50"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-sm font-semibold text-ink">
-                      {o.orderNumber}
-                    </span>
-                    <span className="text-[11px] text-ink-faint">
-                      {formatDate(o.updatedAt)}
-                    </span>
+                    <span className="font-bold text-ink">{o.orderNumber}</span>
+                    <span className="text-xs text-ink-faint">{formatDate(o.updatedAt)}</span>
                   </div>
-                  <p className="text-sm text-ink-soft">{o.customer}</p>
-                  <div className="flex items-center justify-between text-[11px] text-ink-faint">
+                  <p className="text-ink-soft">{o.customer}</p>
+                  <div className="flex items-center justify-between text-xs text-ink-faint">
                     <span>{o.items.reduce((s, i) => s + i.qty, 0)} items</span>
-                    <span className="font-mono">{formatCurrency(orderTotal(data, o))}</span>
+                    <span>{formatCurrency(orderTotal(data, o))}</span>
                   </div>
                   {status !== "Shipped" && (
                     <Button
                       size="xs"
                       variant="outline"
-                      className="mt-1.5 justify-center gap-1 rounded-[3px] border-ink text-ink hover:bg-ink hover:text-background"
+                      className="mt-1 justify-center border-ink text-ink hover:bg-ink hover:text-background"
                       onClick={(e) => {
                         e.stopPropagation();
                         advanceOrder(o.id);
                       }}
                     >
-                      {NEXT_ACTION_LABEL[status]}
-                      <ArrowRight className="size-3" />
+                      {NEXT_ACTION_LABEL[status]} &gt;
                     </Button>
                   )}
                 </div>
@@ -135,18 +117,11 @@ export default function OrdersPage() {
       </div>
 
       <Sheet open={!!selectedOrder} onOpenChange={(o) => !o && setSelected(null)}>
-        <SheetContent className="flex flex-col gap-0 rounded-none border-l border-rule bg-background p-0">
+        <SheetContent className="flex flex-col gap-0 border-l-2 border-ink bg-background p-0">
           {selectedOrder && (
             <>
-              <SheetHeader
-                className="border-b-2 border-ink"
-                style={{
-                  borderLeft: `4px solid ${TONE_HEX[ORDER_STATUS_TONE[selectedOrder.status]]}`,
-                }}
-              >
-                <SheetTitle className="font-mono text-base text-ink">
-                  {selectedOrder.orderNumber}
-                </SheetTitle>
+              <SheetHeader className="border-b-2 border-ink">
+                <SheetTitle className="text-ink">{selectedOrder.orderNumber}</SheetTitle>
                 <SheetDescription className="text-ink-soft">
                   {selectedOrder.customer}
                   <br />
@@ -154,7 +129,7 @@ export default function OrdersPage() {
                 </SheetDescription>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto p-4">
-                <p className="mb-2 text-xs font-medium text-ink-soft">Line items</p>
+                <p className="mb-2 text-xs font-bold text-ink">LINE ITEMS</p>
                 <ul className="divide-y divide-rule border border-rule">
                   {selectedOrder.items.map((item) => {
                     const product = productById(data, item.productId);
@@ -164,14 +139,12 @@ export default function OrdersPage() {
                         className="flex items-center justify-between p-3 text-sm"
                       >
                         <div>
-                          <p className="font-medium text-ink">
-                            {product?.name ?? "Unknown product"}
-                          </p>
-                          <p className="font-mono text-[11px] text-ink-faint">
-                            {product?.sku} &nbsp; BIN {product?.bin} &nbsp; QTY {item.qty}
+                          <p className="text-ink">{product?.name ?? "Unknown product"}</p>
+                          <p className="text-[11px] text-ink-faint">
+                            {product?.sku} bin {product?.bin} qty {item.qty}
                           </p>
                         </div>
-                        <p className="font-mono text-sm text-ink-soft">
+                        <p className="text-ink-soft">
                           {product ? formatCurrency(product.unitPrice * item.qty) : "—"}
                         </p>
                       </li>
@@ -179,8 +152,8 @@ export default function OrdersPage() {
                   })}
                 </ul>
                 <div className="mt-3 flex items-center justify-between border border-ink px-3 py-2 text-sm">
-                  <span className="font-medium text-ink">Order total</span>
-                  <span className="font-mono font-semibold text-ink">
+                  <span className="font-bold text-ink">ORDER TOTAL</span>
+                  <span className="font-bold text-ink">
                     {formatCurrency(orderTotal(data, selectedOrder))}
                   </span>
                 </div>
@@ -188,13 +161,10 @@ export default function OrdersPage() {
               {selectedOrder.status !== "Shipped" && (
                 <SheetFooter className="border-t border-rule">
                   <Button
-                    className={cn(
-                      "w-full rounded-[3px] bg-primary text-primary-foreground hover:bg-primary/90",
-                    )}
+                    className="w-full bg-ink text-background hover:bg-ink/85"
                     onClick={() => advanceOrder(selectedOrder.id)}
                   >
-                    {NEXT_ACTION_LABEL[selectedOrder.status]}
-                    <ArrowRight className="size-3.5" />
+                    {NEXT_ACTION_LABEL[selectedOrder.status]} &gt;
                   </Button>
                 </SheetFooter>
               )}
