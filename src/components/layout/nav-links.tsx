@@ -16,6 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/warehouse", label: "Warehouse" },
   { href: "/receiving", label: "Receiving" },
   { href: "/reorder-planning", label: "Reorder Planning" },
+  { href: "/reports", label: "Reports" },
 ];
 
 export function NavLinks() {

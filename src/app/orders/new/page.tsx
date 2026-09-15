@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { HelpCircle, Plus, Save, Trash2 } from "lucide-react";
+import { HelpCircle, Plus, Save, Search, Trash2, X } from "lucide-react";
 import { useDepot } from "@/lib/store";
 import { AvatarBadge } from "@/components/avatar-badge";
 import { Button } from "@/components/ui/button";
@@ -35,13 +35,87 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 }
 
 const inputClass =
-  "h-9 w-full border border-rule bg-background px-2.5 text-sm text-ink outline-none focus-visible:border-primary";
+  "h-9 w-full border border-rule bg-card px-2.5 text-sm text-ink outline-none focus-visible:border-primary";
+
+/** A TDX-style lookup field: text input plus attached search/clear buttons, with a suggestion dropdown. */
+function LookupField({
+  value,
+  onChange,
+  placeholder,
+  suggestions,
+  onSelectSuggestion,
+  onClear,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  suggestions: string[];
+  onSelectSuggestion: (v: string) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const showSuggestions = open && suggestions.length > 0;
+
+  return (
+    <div className="relative">
+      <div className="flex items-stretch border border-rule bg-card focus-within:border-primary">
+        <input
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+          placeholder={placeholder}
+          className="h-9 min-w-0 flex-1 bg-transparent px-2.5 text-sm text-ink outline-none placeholder:text-ink-faint"
+        />
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-label="Search"
+          className="flex w-9 shrink-0 items-center justify-center border-l border-rule text-solid-blue hover:bg-secondary"
+        >
+          <Search className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onClear}
+          aria-label="Clear"
+          className="flex w-9 shrink-0 items-center justify-center border-l border-rule text-solid-red hover:bg-secondary"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+      {showSuggestions && (
+        <ul className="absolute z-10 mt-0.5 w-full border border-rule bg-card shadow-sm">
+          {suggestions.map((s) => (
+            <li key={s}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onSelectSuggestion(s);
+                  setOpen(false);
+                }}
+                className="block w-full px-2.5 py-1.5 text-left text-sm text-ink hover:bg-secondary"
+              >
+                {s}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export default function NewOrderPage() {
   const { data, createOrder } = useDepot();
   const router = useRouter();
 
   const [customer, setCustomer] = useState("");
+  const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [priority, setPriority] = useState<OrderPriority>("Medium");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<DraftLine[]>([{ productId: "", qty: 1 }]);
@@ -51,6 +125,13 @@ export default function NewOrderPage() {
     const q = customer.trim().toLowerCase();
     if (!q) return [];
     return data.orders.filter((o) => o.customer.toLowerCase().includes(q)).slice(0, 5);
+  }, [data.orders, customer]);
+
+  const customerSuggestions = useMemo(() => {
+    const q = customer.trim().toLowerCase();
+    if (!q) return [];
+    const names = Array.from(new Set(data.orders.map((o) => o.customer)));
+    return names.filter((n) => n.toLowerCase().includes(q) && n.toLowerCase() !== q).slice(0, 5);
   }, [data.orders, customer]);
 
   function updateLine(index: number, patch: Partial<DraftLine>) {
@@ -113,14 +194,25 @@ export default function NewOrderPage() {
       <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <SectionHeading>Customer Information</SectionHeading>
-          <div className="max-w-md">
+          <div className="max-w-xl">
             <FieldLabel required>Customer</FieldLabel>
-            <input
+            <LookupField
               value={customer}
-              onChange={(e) => setCustomer(e.target.value)}
+              onChange={setCustomer}
               placeholder="Start typing a customer name or ID..."
-              className={inputClass}
+              suggestions={customerSuggestions}
+              onSelectSuggestion={setCustomer}
+              onClear={() => setCustomer("")}
             />
+            <label className="mt-2 flex items-center gap-2 text-sm text-ink-soft">
+              <input
+                type="checkbox"
+                checked={notifyCustomer}
+                onChange={(e) => setNotifyCustomer(e.target.checked)}
+                className="size-4 accent-primary"
+              />
+              Notify customer
+            </label>
           </div>
 
           <SectionHeading>Order Information</SectionHeading>
@@ -205,7 +297,7 @@ export default function NewOrderPage() {
             </div>
             <div>
               <FieldLabel>Status</FieldLabel>
-              <div className={cn(inputClass, "flex items-center bg-secondary text-ink-soft")}>New</div>
+              <div className={cn(inputClass, "flex items-center text-ink-soft")}>New</div>
             </div>
           </div>
         </div>

@@ -166,6 +166,13 @@ export default function OverviewPage() {
           <Panel title="Quick Actions">
             <div className="flex flex-col gap-4">
               <div>
+                <p className="text-sm font-semibold text-ink">New Order</p>
+                <p className="text-xs text-ink-soft">Create a new customer order.</p>
+                <Link href="/orders/new" className={cn(buttonVariants({ size: "sm" }), "mt-2 w-full")}>
+                  New Order
+                </Link>
+              </div>
+              <div className="border-t border-rule pt-4">
                 <p className="text-sm font-semibold text-ink">Reorder</p>
                 <p className="text-xs text-ink-soft">
                   {lowStock.length} product{lowStock.length === 1 ? "" : "s"} below their reorder point.
@@ -252,7 +259,14 @@ export default function OverviewPage() {
         <div className="lg:col-span-2">
           <Panel
             title="All Orders"
-            action={<span className="text-xs text-ink-faint">{data.orders.length} total</span>}
+            action={
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-ink-faint">{data.orders.length} total</span>
+                <Link href="/orders/new" className={buttonVariants({ size: "sm" })}>
+                  New Order
+                </Link>
+              </div>
+            }
           >
             <Table>
               <TableHeader>

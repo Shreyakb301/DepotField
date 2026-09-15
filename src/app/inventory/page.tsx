@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Save, X } from "lucide-react";
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/dashboard-box";
 import { AvatarBadge } from "@/components/avatar-badge";
+import { StatusBadge } from "@/components/status-badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -37,6 +39,9 @@ const STATUS_OPTIONS: ProductStatus[] = ["active", "quality_hold", "discontinued
 
 const selectClass =
   "h-8 border border-rule bg-background px-2 text-sm text-ink outline-none focus-visible:border-ink";
+
+const editInputClass =
+  "h-9 border border-rule bg-card px-2.5 text-sm text-ink outline-none focus-visible:border-primary";
 
 type SortKey = "name" | "category" | "supplier" | "stock" | "reorderPoint" | "value";
 
@@ -81,6 +86,9 @@ export default function InventoryPage() {
     dir: "asc",
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draftStock, setDraftStock] = useState(0);
+  const [draftStatus, setDraftStatus] = useState<ProductStatus>("active");
 
   function toggleSort(key: SortKey) {
     setSort((prev) =>
@@ -133,6 +141,25 @@ export default function InventoryPage() {
 
   const selected = data.products.find((p) => p.id === selectedId);
   const selectedSupplier = selected ? data.suppliers.find((s) => s.id === selected.supplierId) : undefined;
+
+  function openProduct(id: string) {
+    setSelectedId(id);
+    setEditing(false);
+  }
+
+  function startEdit() {
+    if (!selected) return;
+    setDraftStock(selected.stock);
+    setDraftStatus(selected.status);
+    setEditing(true);
+  }
+
+  function saveEdit() {
+    if (!selected) return;
+    if (draftStock !== selected.stock) updateProductStock(selected.id, draftStock);
+    if (draftStatus !== selected.status) updateProductStatus(selected.id, draftStatus);
+    setEditing(false);
+  }
 
   return (
     <div>
@@ -237,7 +264,7 @@ export default function InventoryPage() {
                 <TableRow key={p.id} className="border-rule hover:bg-secondary/50">
                   <TableCell>
                     <button
-                      onClick={() => setSelectedId(p.id)}
+                      onClick={() => openProduct(p.id)}
                       className="font-semibold text-primary hover:underline"
                     >
                       {p.name}
@@ -249,44 +276,18 @@ export default function InventoryPage() {
                     {supplierName(data, p.supplierId)}
                   </TableCell>
                   <TableCell className="text-ink-soft">{p.bin}</TableCell>
-                  <TableCell className="text-right">
-                    <input
-                      type="number"
-                      min={0}
-                      defaultValue={p.stock}
-                      key={p.stock}
-                      onBlur={(e) => {
-                        const next = Number(e.target.value);
-                        if (Number.isFinite(next) && next !== p.stock) {
-                          updateProductStock(p.id, next);
-                        }
-                      }}
-                      className={cn(
-                        "w-16 border border-rule bg-background px-1.5 py-1 text-right text-sm text-ink outline-none focus-visible:border-ink",
-                        low && "font-bold text-solid-red",
-                      )}
-                    />
+                  <TableCell className={cn("text-right", low ? "font-bold text-solid-red" : "text-ink")}>
+                    {p.stock}
                   </TableCell>
                   <TableCell className="text-right text-ink-soft">{p.reorderPoint}</TableCell>
                   <TableCell className="text-right text-ink-soft">
                     {formatCurrency(p.stock * p.unitCost)}
                   </TableCell>
                   <TableCell>
-                    <select
-                      value={p.status}
-                      onChange={(e) => updateProductStatus(p.id, e.target.value as ProductStatus)}
-                      className={cn(
-                        "h-7 border-2 bg-background px-1.5 text-xs font-bold outline-none",
-                        TONE_TEXT_CLASS[PRODUCT_STATUS_TONE[p.status]],
-                      )}
-                      style={{ borderColor: "currentColor" }}
-                    >
-                      {STATUS_OPTIONS.map((s) => (
-                        <option key={s} value={s}>
-                          {PRODUCT_STATUS_LABEL[s]}
-                        </option>
-                      ))}
-                    </select>
+                    <StatusBadge
+                      label={PRODUCT_STATUS_LABEL[p.status]}
+                      tone={PRODUCT_STATUS_TONE[p.status]}
+                    />
                   </TableCell>
                 </TableRow>
               );
@@ -302,7 +303,15 @@ export default function InventoryPage() {
         </Table>
       </Panel>
 
-      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
+      <Sheet
+        open={!!selected}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSelectedId(null);
+            setEditing(false);
+          }
+        }}
+      >
         <SheetContent className="flex flex-col gap-0 bg-background p-0 data-[side=right]:sm:max-w-2xl">
           {selected && (
             <>
@@ -323,12 +332,69 @@ export default function InventoryPage() {
                 </p>
               </SheetHeader>
 
+              <div className="flex flex-wrap items-center gap-2 border-b border-rule px-4 py-3">
+                {!editing ? (
+                  <Button size="sm" variant="outline" onClick={startEdit}>
+                    <Pencil className="size-3.5" />
+                    Edit
+                  </Button>
+                ) : (
+                  <>
+                    <Button size="sm" onClick={saveEdit}>
+                      <Save className="size-3.5" />
+                      Save
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
+                      <X className="size-3.5" />
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
+
               <div className="grid flex-1 grid-cols-1 gap-6 overflow-y-auto p-4 md:grid-cols-3">
                 <div className="md:col-span-2">
                   <h3 className="mb-2 border-b border-rule pb-1.5 text-base font-semibold text-ink">
                     Details
                   </h3>
-                  <dl className="mb-4 grid grid-cols-2 gap-y-2 text-sm">
+                  <dl className="mb-4 grid grid-cols-2 gap-y-3 text-sm">
+                    <dt className="self-center text-ink-faint">Stock</dt>
+                    <dd>
+                      {editing ? (
+                        <input
+                          type="number"
+                          min={0}
+                          value={draftStock}
+                          onChange={(e) => setDraftStock(Math.max(0, Number(e.target.value)))}
+                          className={cn(editInputClass, "w-28")}
+                        />
+                      ) : (
+                        <span className={cn(isLowStock(selected) && "font-bold text-solid-red", "text-ink")}>
+                          {selected.stock}
+                        </span>
+                      )}
+                    </dd>
+                    <dt className="self-center text-ink-faint">Status</dt>
+                    <dd>
+                      {editing ? (
+                        <select
+                          value={draftStatus}
+                          onChange={(e) => setDraftStatus(e.target.value as ProductStatus)}
+                          className={editInputClass}
+                        >
+                          {STATUS_OPTIONS.map((s) => (
+                            <option key={s} value={s}>
+                              {PRODUCT_STATUS_LABEL[s]}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <StatusBadge
+                          label={PRODUCT_STATUS_LABEL[selected.status]}
+                          tone={PRODUCT_STATUS_TONE[selected.status]}
+                        />
+                      )}
+                    </dd>
                     <dt className="text-ink-faint">Category</dt>
                     <dd className="text-ink">{selected.category}</dd>
                     <dt className="text-ink-faint">Manufacturer</dt>
@@ -354,42 +420,6 @@ export default function InventoryPage() {
                     <dt className="text-ink-faint">Last Restocked</dt>
                     <dd className="text-ink">{formatDate(selected.lastRestocked)}</dd>
                   </dl>
-
-                  <h3 className="mb-2 border-b border-rule pb-1.5 text-base font-semibold text-ink">
-                    Update
-                  </h3>
-                  <div className="flex flex-wrap items-end gap-4">
-                    <div>
-                      <label className="mb-1 block text-xs font-semibold text-ink-soft">Stock</label>
-                      <input
-                        type="number"
-                        min={0}
-                        defaultValue={selected.stock}
-                        key={selected.stock}
-                        onBlur={(e) => {
-                          const next = Number(e.target.value);
-                          if (Number.isFinite(next) && next !== selected.stock) {
-                            updateProductStock(selected.id, next);
-                          }
-                        }}
-                        className="h-9 w-28 border border-rule bg-background px-2.5 text-sm text-ink outline-none focus-visible:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-semibold text-ink-soft">Status</label>
-                      <select
-                        value={selected.status}
-                        onChange={(e) => updateProductStatus(selected.id, e.target.value as ProductStatus)}
-                        className="h-9 border border-rule bg-background px-2.5 text-sm text-ink outline-none focus-visible:border-primary"
-                      >
-                        {STATUS_OPTIONS.map((s) => (
-                          <option key={s} value={s}>
-                            {PRODUCT_STATUS_LABEL[s]}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
                 </div>
 
                 <div>
