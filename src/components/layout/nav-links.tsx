@@ -32,7 +32,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-1">
+    <nav className="flex flex-col">
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
         const active = pathname === href;
         return (
@@ -41,13 +41,13 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-2.5 border-l-[3px] px-3.5 py-2 text-[13px] font-medium transition-colors",
               active
-                ? "bg-emerald-500/15 text-emerald-400"
-                : "text-slate-300 hover:bg-white/5 hover:text-white",
+                ? "border-l-primary bg-sidebar-accent text-sidebar-accent-foreground"
+                : "border-l-transparent text-sidebar-foreground/70 hover:border-l-sidebar-border hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
             )}
           >
-            <Icon className="size-4 shrink-0" strokeWidth={2} />
+            <Icon className="size-4 shrink-0" strokeWidth={1.75} />
             {label}
           </Link>
         );

@@ -1,18 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ClipboardList,
-  AlertTriangle,
-  DollarSign,
-  Warehouse as WarehouseIcon,
-  ArrowRight,
-  Clock,
-  ShieldAlert,
-} from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Clock, ShieldAlert } from "lucide-react";
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
-import { KpiCard } from "@/components/kpi-card";
+import { StatStrip } from "@/components/stat-strip";
 import { StatusBadge } from "@/components/status-badge";
 import { InventoryByCategoryChart } from "@/components/charts/inventory-by-category-chart";
 import { OrdersByStatusChart } from "@/components/charts/orders-by-status-chart";
@@ -43,154 +35,148 @@ export default function OverviewPage() {
     <div>
       <PageHeader
         title="Overview"
-        description="Real-time snapshot of fulfillment, inventory, and warehouse capacity."
+        description="Fulfillment, inventory, and warehouse capacity as of today."
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          label="Orders to Fulfill"
-          value={String(toFulfill)}
-          subtext={`${data.orders.length} total orders`}
-          icon={ClipboardList}
-        />
-        <KpiCard
-          label="Low-Stock Items"
-          value={String(lowStock.length)}
-          subtext={lowStock.length > 0 ? "Below reorder point" : "All stocked"}
-          icon={AlertTriangle}
-          tone={lowStock.length > 0 ? "warning" : "default"}
-        />
-        <KpiCard
-          label="Inventory Value"
-          value={formatCurrency(value)}
-          subtext={`${data.products.length} SKUs on hand`}
-          icon={DollarSign}
-        />
-        <KpiCard
-          label="Warehouse Capacity"
-          value={`${capacityPct}%`}
-          subtext="Across 16 bins, A-01–D-04"
-          icon={WarehouseIcon}
-          tone={capacityPct >= 85 ? "warning" : "default"}
-        />
-      </div>
+      <StatStrip
+        stats={[
+          {
+            label: "Orders to fulfill",
+            value: String(toFulfill),
+            hint: `of ${data.orders.length} total`,
+          },
+          {
+            label: "Low-stock items",
+            value: String(lowStock.length),
+            hint: lowStock.length > 0 ? "below reorder point" : "all stocked",
+            warn: lowStock.length > 0,
+          },
+          {
+            label: "Inventory value",
+            value: formatCurrency(value),
+            hint: `${data.products.length} SKUs on hand`,
+          },
+          {
+            label: "Warehouse capacity",
+            value: `${capacityPct}%`,
+            hint: "16 bins, A-01 through D-04",
+            warn: capacityPct >= 85,
+          },
+        ]}
+      />
 
-      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">
-            Inventory by Category
-          </h2>
-          <p className="text-xs text-muted-foreground">Units on hand per category</p>
-          <div className="mt-2">
+      <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-2">
+        <section>
+          <h2 className="font-heading text-lg font-bold text-ink">Inventory by category</h2>
+          <p className="text-xs text-ink-soft">Units on hand</p>
+          <div className="mt-3">
             <InventoryByCategoryChart data={byCategory} />
           </div>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">
-            Orders by Status
-          </h2>
-          <p className="text-xs text-muted-foreground">Where open orders stand right now</p>
-          <div className="mt-2">
+        </section>
+        <section>
+          <h2 className="font-heading text-lg font-bold text-ink">Orders by status</h2>
+          <p className="text-xs text-ink-soft">Where open orders stand right now</p>
+          <div className="mt-3">
             <OrdersByStatusChart data={byStatus} />
           </div>
-        </div>
+        </section>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div className="rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b border-border p-4">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="size-4 text-amber-600" />
-              <h2 className="text-sm font-semibold text-foreground">
-                Low-Stock Alerts
-              </h2>
+      <div className="mt-10 grid grid-cols-1 gap-8 xl:grid-cols-2">
+        <section>
+          <div className="flex items-center justify-between border-b-2 border-ink pb-2">
+            <div className="flex items-center gap-1.5">
+              <AlertTriangle className="size-4 text-stamp-flag" />
+              <h2 className="font-heading text-lg font-bold text-ink">Low-stock alerts</h2>
             </div>
             <Link
               href="/reorder-planning"
-              className="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline"
+              className="flex items-center gap-0.5 text-xs font-medium text-primary hover:underline"
             >
-              Reorder plan <ArrowRight className="size-3" />
+              Reorder plan
+              <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-rule">
             {lowStock.length === 0 && (
-              <li className="p-4 text-sm text-muted-foreground">
-                No products are currently below their reorder point.
+              <li className="py-4 text-sm text-ink-soft">
+                Nothing is below its reorder point.
               </li>
             )}
             {lowStock.slice(0, 5).map((p) => (
-              <li key={p.id} className="flex items-center justify-between p-4">
+              <li key={p.id} className="flex items-center justify-between py-3">
                 <div>
-                  <p className="text-sm font-medium text-foreground">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">{p.sku} &middot; Bin {p.bin}</p>
+                  <p className="text-sm font-medium text-ink">{p.name}</p>
+                  <p className="font-mono text-[11px] text-ink-faint">
+                    {p.sku} &nbsp; BIN {p.bin}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-amber-600">
+                  <p className="font-mono text-sm font-semibold text-stamp-flag">
                     {p.stock} / {p.reorderPoint}
                   </p>
-                  <p className="text-xs text-muted-foreground">on hand / reorder pt</p>
+                  <p className="text-[11px] text-ink-faint">on hand / reorder pt.</p>
                 </div>
               </li>
             ))}
           </ul>
-        </div>
+        </section>
 
-        <div className="rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b border-border p-4">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="size-4 text-rose-600" />
-              <h2 className="text-sm font-semibold text-foreground">
-                Needs Attention
-              </h2>
+        <section>
+          <div className="flex items-center justify-between border-b-2 border-ink pb-2">
+            <div className="flex items-center gap-1.5">
+              <ShieldAlert className="size-4 text-stamp-danger" />
+              <h2 className="font-heading text-lg font-bold text-ink">Needs attention</h2>
             </div>
             <Link
               href="/receiving"
-              className="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline"
+              className="flex items-center gap-0.5 text-xs font-medium text-primary hover:underline"
             >
-              Receiving <ArrowRight className="size-3" />
+              Receiving
+              <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-rule">
             {delayedPOs.length === 0 && onHold.length === 0 && (
-              <li className="p-4 text-sm text-muted-foreground">
+              <li className="py-4 text-sm text-ink-soft">
                 No delayed shipments or quality holds right now.
               </li>
             )}
             {delayedPOs.map((po) => (
-              <li key={po.id} className="flex items-center justify-between p-4">
+              <li key={po.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="size-3.5 text-rose-500" />
+                  <Clock className="size-3.5 shrink-0 text-stamp-danger" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">{po.poNumber}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Expected {formatDate(po.expectedAt)}
+                    <p className="font-mono text-sm font-medium text-ink">{po.poNumber}</p>
+                    <p className="text-[11px] text-ink-faint">
+                      expected {formatDate(po.expectedAt)}
                     </p>
                   </div>
                 </div>
-                <StatusBadge label="Delayed" tone="rose" />
+                <StatusBadge label="Delayed" tone="danger" />
               </li>
             ))}
             {onHold.map((q) => {
               const product = data.products.find((p) => p.id === q.productId);
               return (
-                <li key={q.id} className="flex items-center justify-between p-4">
+                <li key={q.id} className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-2">
-                    <ShieldAlert className="size-3.5 text-amber-500" />
+                    <ShieldAlert className="size-3.5 shrink-0 text-stamp-flag" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-medium text-ink">
                         {product?.name ?? "Unknown product"}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {q.qty} units — {q.reason}
+                      <p className="text-[11px] text-ink-faint">
+                        {q.qty} units, {q.reason}
                       </p>
                     </div>
                   </div>
-                  <StatusBadge label="Quality Hold" tone="amber" />
+                  <StatusBadge label="Quality Hold" tone="flag" />
                 </li>
               );
             })}
           </ul>
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -25,6 +25,9 @@ import { isLowStock, supplierName } from "@/lib/selectors";
 
 const STATUS_OPTIONS: ProductStatus[] = ["active", "quality_hold", "discontinued"];
 
+const selectClass =
+  "h-8 rounded-[3px] border border-rule bg-surface px-2.5 text-sm text-ink outline-none focus-visible:border-primary";
+
 export default function InventoryPage() {
   const { data, updateProductStock, updateProductStatus } = useDepot();
   const [query, setQuery] = useState("");
@@ -55,20 +58,20 @@ export default function InventoryPage() {
         description="Search, filter, and adjust stock levels across every SKU."
       />
 
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1 sm:max-w-xs">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-faint" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search product, SKU, or supplier"
-            className="pl-8"
+            className="rounded-[3px] border-rule bg-surface pl-8 text-ink placeholder:text-ink-faint focus-visible:border-primary"
           />
         </div>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as Category | "all")}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring"
+          className={selectClass}
         >
           <option value="all">All categories</option>
           {CATEGORIES.map((c) => (
@@ -80,7 +83,7 @@ export default function InventoryPage() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as ProductStatus | "all")}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring"
+          className={selectClass}
         >
           <option value="all">All statuses</option>
           {STATUS_OPTIONS.map((s) => (
@@ -89,29 +92,29 @@ export default function InventoryPage() {
             </option>
           ))}
         </select>
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground select-none">
+        <label className="flex items-center gap-1.5 text-sm text-ink-soft select-none">
           <input
             type="checkbox"
             checked={lowOnly}
             onChange={(e) => setLowOnly(e.target.checked)}
-            className="size-3.5 accent-emerald-600"
+            className="size-3.5 accent-primary"
           />
           Low stock only
         </label>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="border border-rule">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Bin</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
-              <TableHead className="text-right">Reorder Pt.</TableHead>
-              <TableHead className="text-right">Value</TableHead>
-              <TableHead>Status</TableHead>
+            <TableRow className="border-b-2 border-ink hover:bg-transparent">
+              <TableHead className="text-ink">Product</TableHead>
+              <TableHead className="text-ink">Category</TableHead>
+              <TableHead className="text-ink">Supplier</TableHead>
+              <TableHead className="text-ink">Bin</TableHead>
+              <TableHead className="text-right text-ink">Stock</TableHead>
+              <TableHead className="text-right text-ink">Reorder Pt.</TableHead>
+              <TableHead className="text-right text-ink">Value</TableHead>
+              <TableHead className="text-ink">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -120,18 +123,21 @@ export default function InventoryPage() {
               return (
                 <TableRow
                   key={p.id}
-                  className={cn(low && "bg-amber-50/60 hover:bg-amber-50")}
+                  className={cn(
+                    "border-rule hover:bg-secondary/40",
+                    low && "border-l-2 border-l-stamp-flag bg-stamp-flag-soft/30",
+                  )}
                 >
                   <TableCell>
-                    <p className="font-medium text-foreground">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.sku}</p>
+                    <p className="font-medium text-ink">{p.name}</p>
+                    <p className="font-mono text-[11px] text-ink-faint">{p.sku}</p>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{p.category}</TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="text-ink-soft">{p.category}</TableCell>
+                  <TableCell className="text-ink-soft">
                     {supplierName(data, p.supplierId)}
                   </TableCell>
                   <TableCell>
-                    <span className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-xs">
+                    <span className="border border-rule-strong px-1.5 py-0.5 font-mono text-xs text-ink-soft">
                       {p.bin}
                     </span>
                   </TableCell>
@@ -148,15 +154,15 @@ export default function InventoryPage() {
                         }
                       }}
                       className={cn(
-                        "w-16 rounded-md border border-input bg-transparent px-1.5 py-1 text-right text-sm outline-none focus-visible:border-ring",
-                        low && "font-semibold text-amber-700",
+                        "w-16 rounded-[3px] border border-rule bg-surface px-1.5 py-1 text-right font-mono text-sm text-ink outline-none focus-visible:border-primary",
+                        low && "font-semibold text-stamp-flag",
                       )}
                     />
                   </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
+                  <TableCell className="text-right font-mono text-ink-soft">
                     {p.reorderPoint}
                   </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
+                  <TableCell className="text-right font-mono text-ink-soft">
                     {formatCurrency(p.stock * p.unitCost)}
                   </TableCell>
                   <TableCell>
@@ -166,7 +172,7 @@ export default function InventoryPage() {
                         updateProductStatus(p.id, e.target.value as ProductStatus)
                       }
                       className={cn(
-                        "h-6 rounded-full border px-2 text-xs font-medium outline-none focus-visible:border-ring",
+                        "h-6 rounded-[3px] border px-1.5 font-mono text-[11px] font-medium outline-none focus-visible:border-primary",
                         TONE_CLASSNAMES[PRODUCT_STATUS_TONE[p.status]],
                       )}
                     >
@@ -181,8 +187,8 @@ export default function InventoryPage() {
               );
             })}
             {filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+              <TableRow className="border-rule hover:bg-transparent">
+                <TableCell colSpan={8} className="py-8 text-center text-ink-soft">
                   No products match your filters.
                 </TableCell>
               </TableRow>

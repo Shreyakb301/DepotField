@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PackageCheck, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
+import { PackageCheck, CheckCircle2, XCircle } from "lucide-react";
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge, InkStamp } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -82,43 +82,49 @@ export default function ReceivingPage() {
     <div>
       <PageHeader
         title="Receiving"
-        description="Incoming supplier purchase orders and quality-hold inspection queue."
+        description="Incoming supplier purchase orders and the quality-hold inspection queue."
       />
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <div className="border-b border-border p-4">
-          <h2 className="text-sm font-semibold text-foreground">Purchase Orders</h2>
-        </div>
-        <ul className="divide-y divide-border">
+      <section>
+        <h2 className="border-b-2 border-ink pb-2 font-heading text-lg font-bold text-ink">
+          Purchase orders
+        </h2>
+        <ul className="divide-y divide-rule">
           {sortedPOs.map((po) => {
             const totalOrdered = po.items.reduce((s, i) => s + i.qtyOrdered, 0);
             const totalReceived = po.items.reduce((s, i) => s + i.qtyReceived, 0);
             const canReceive = po.status !== "Received";
             return (
-              <li key={po.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <li key={po.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-foreground">{po.poNumber}</p>
+                    <p className="font-mono text-sm font-semibold text-ink">{po.poNumber}</p>
                     <StatusBadge label={po.status} tone={PO_STATUS_TONE[po.status]} />
                   </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {supplierName(data, po.supplierId)} &middot; expected {formatDate(po.expectedAt)}
+                  <p className="mt-0.5 text-xs text-ink-soft">
+                    {supplierName(data, po.supplierId)}
+                    <span className="text-ink-faint"> &nbsp; expected {formatDate(po.expectedAt)}</span>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 font-mono text-[11px] text-ink-faint">
                     {po.items
                       .map((i) => `${productById(data, i.productId)?.name ?? i.productId} (${i.qtyReceived}/${i.qtyOrdered})`)
-                      .join(", ")}
+                      .join("  ·  ")}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="text-right text-xs text-muted-foreground">
-                    {totalReceived}/{totalOrdered} units received
+                  <div className="text-right font-mono text-xs text-ink-faint">
+                    {totalReceived}/{totalOrdered} units
                   </div>
                   <Button
                     size="sm"
-                    variant={canReceive ? "default" : "secondary"}
                     disabled={!canReceive}
                     onClick={() => openReceive(po)}
+                    className={cn(
+                      "rounded-[3px]",
+                      canReceive
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "bg-secondary text-ink-faint",
+                    )}
                   >
                     <PackageCheck className="size-3.5" />
                     {po.status === "Received" ? "Received" : "Receive"}
@@ -128,21 +134,16 @@ export default function ReceivingPage() {
             );
           })}
         </ul>
-      </div>
+      </section>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <div className="flex items-center gap-2 border-b border-border p-4">
-          <ShieldAlert className="size-4 text-amber-600" />
-          <h2 className="text-sm font-semibold text-foreground">
-            Quality Hold Queue
-          </h2>
-          <span className="text-xs text-muted-foreground">
-            {openHolds.length} awaiting inspection
-          </span>
+      <section className="mt-10">
+        <div className="flex items-baseline justify-between border-b-2 border-ink pb-2">
+          <h2 className="font-heading text-lg font-bold text-ink">Quality hold queue</h2>
+          <span className="text-xs text-ink-faint">{openHolds.length} awaiting inspection</span>
         </div>
-        <ul className="divide-y divide-border">
+        <ul className="divide-y divide-rule">
           {openHolds.length === 0 && (
-            <li className="p-4 text-sm text-muted-foreground">
+            <li className="py-4 text-sm text-ink-soft">
               Nothing currently on quality hold.
             </li>
           )}
@@ -150,22 +151,36 @@ export default function ReceivingPage() {
             const product = productById(data, entry.productId);
             const po = data.purchaseOrders.find((p) => p.id === entry.poId);
             return (
-              <li key={entry.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {product?.name ?? "Unknown product"}{" "}
-                    <span className="font-normal text-muted-foreground">&middot; {entry.qty} units</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {entry.reason} &middot; {po?.poNumber ?? "—"} &middot; flagged {formatDate(entry.flaggedAt)}
-                  </p>
+              <li key={entry.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <InkStamp label="Hold" tone="flag" />
+                  <div>
+                    <p className="text-sm font-medium text-ink">
+                      {product?.name ?? "Unknown product"}{" "}
+                      <span className="font-mono text-ink-faint">&nbsp;{entry.qty} units</span>
+                    </p>
+                    <p className="text-xs text-ink-soft">{entry.reason}</p>
+                    <p className="font-mono text-[11px] text-ink-faint">
+                      {po?.poNumber ?? "—"} &nbsp; flagged {formatDate(entry.flaggedAt)}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => releaseQualityHold(entry.id)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-[3px] border-stamp-ok text-stamp-ok hover:bg-stamp-ok hover:text-white"
+                    onClick={() => releaseQualityHold(entry.id)}
+                  >
                     <CheckCircle2 className="size-3.5" />
-                    Release to Stock
+                    Release to stock
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => rejectQualityHold(entry.id)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-[3px] border-stamp-danger text-stamp-danger hover:bg-stamp-danger hover:text-white"
+                    onClick={() => rejectQualityHold(entry.id)}
+                  >
                     <XCircle className="size-3.5" />
                     Reject
                   </Button>
@@ -175,15 +190,15 @@ export default function ReceivingPage() {
           })}
         </ul>
         {resolvedHolds.length > 0 && (
-          <div className="border-t border-border p-4">
-            <p className="mb-2 text-xs font-medium text-muted-foreground">Resolved history</p>
+          <div className="mt-2 border-t border-rule pt-3">
+            <p className="mb-2 text-xs font-medium text-ink-soft">Resolved history</p>
             <ul className="flex flex-col gap-2">
               {resolvedHolds.map((entry) => {
                 const product = productById(data, entry.productId);
                 return (
-                  <li key={entry.id} className="flex items-center justify-between text-xs text-muted-foreground">
+                  <li key={entry.id} className="flex items-center justify-between text-xs text-ink-faint">
                     <span>
-                      {product?.name ?? "Unknown product"} &middot; {entry.qty} units &middot; {entry.reason}
+                      {product?.name ?? "Unknown product"}, {entry.qty} units, {entry.reason}
                     </span>
                     <StatusBadge label={entry.status} tone={QUALITY_HOLD_TONE[entry.status]} />
                   </li>
@@ -192,31 +207,33 @@ export default function ReceivingPage() {
             </ul>
           </div>
         )}
-      </div>
+      </section>
 
       <Dialog open={!!receivingPO} onOpenChange={(o) => !o && setReceivingPO(null)}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="rounded-none border border-ink ring-0 sm:max-w-lg">
           {receivingPO && (
             <>
               <DialogHeader>
-                <DialogTitle>Receive {receivingPO.poNumber}</DialogTitle>
-                <DialogDescription>
-                  {supplierName(data, receivingPO.supplierId)} &middot; choose where each line item goes.
+                <DialogTitle className="text-ink">
+                  Receive <span className="font-mono">{receivingPO.poNumber}</span>
+                </DialogTitle>
+                <DialogDescription className="text-ink-soft">
+                  {supplierName(data, receivingPO.supplierId)}. Choose where each line item goes.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex max-h-80 flex-col gap-3 overflow-y-auto">
                 {lines.map((line, idx) => {
                   const product = productById(data, line.productId);
                   return (
-                    <div key={line.productId} className="rounded-lg border border-border p-3">
+                    <div key={line.productId} className="border border-rule p-3">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-foreground">{product?.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm font-medium text-ink">{product?.name}</p>
+                        <p className="font-mono text-xs text-ink-faint">
                           {line.remaining} remaining
                         </p>
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <label className="flex items-center gap-1.5 text-xs text-ink-soft">
                           Qty
                           <input
                             type="number"
@@ -229,10 +246,10 @@ export default function ReceivingPage() {
                                 prev.map((l, i) => (i === idx ? { ...l, qty } : l)),
                               );
                             }}
-                            className="w-16 rounded-md border border-input bg-transparent px-1.5 py-1 text-sm outline-none focus-visible:border-ring"
+                            className="w-16 rounded-[3px] border border-rule bg-surface px-1.5 py-1 font-mono text-sm text-ink outline-none focus-visible:border-primary"
                           />
                         </label>
-                        <div className="flex overflow-hidden rounded-md border border-input">
+                        <div className="flex overflow-hidden rounded-[3px] border border-ink">
                           <button
                             type="button"
                             onClick={() =>
@@ -243,11 +260,11 @@ export default function ReceivingPage() {
                             className={cn(
                               "px-2 py-1 text-xs font-medium",
                               line.destination === "stock"
-                                ? "bg-emerald-600 text-white"
-                                : "bg-transparent text-muted-foreground hover:bg-muted",
+                                ? "bg-ink text-background"
+                                : "bg-transparent text-ink-soft hover:bg-secondary",
                             )}
                           >
-                            Add to Stock
+                            Add to stock
                           </button>
                           <button
                             type="button"
@@ -257,13 +274,13 @@ export default function ReceivingPage() {
                               )
                             }
                             className={cn(
-                              "px-2 py-1 text-xs font-medium",
+                              "border-l border-ink px-2 py-1 text-xs font-medium",
                               line.destination === "hold"
-                                ? "bg-amber-500 text-white"
-                                : "bg-transparent text-muted-foreground hover:bg-muted",
+                                ? "bg-stamp-flag text-white"
+                                : "bg-transparent text-ink-soft hover:bg-secondary",
                             )}
                           >
-                            Quality Hold
+                            Quality hold
                           </button>
                         </div>
                       </div>
@@ -277,12 +294,12 @@ export default function ReceivingPage() {
                               prev.map((l, i) => (i === idx ? { ...l, reason: e.target.value } : l)),
                             )
                           }
-                          className="mt-2 w-full rounded-md border border-input bg-transparent px-2 py-1 text-xs outline-none focus-visible:border-ring"
+                          className="mt-2 w-full rounded-[3px] border border-rule bg-surface px-2 py-1 text-xs text-ink outline-none focus-visible:border-primary"
                         />
                       )}
                       {product && (
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          Bin {product.bin} &middot; {formatCurrency(product.unitCost)} / unit
+                        <p className="mt-2 font-mono text-[11px] text-ink-faint">
+                          BIN {product.bin} &nbsp; {formatCurrency(product.unitCost)}/unit
                         </p>
                       )}
                     </div>
@@ -290,8 +307,11 @@ export default function ReceivingPage() {
                 })}
               </div>
               <DialogFooter>
-                <Button className="w-full" onClick={submitReceive}>
-                  Confirm Receipt
+                <Button
+                  className="w-full rounded-[3px] bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={submitReceive}
+                >
+                  Confirm receipt
                 </Button>
               </DialogFooter>
             </>

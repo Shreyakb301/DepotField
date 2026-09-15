@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, PackageSearch, RotateCcw } from "lucide-react";
+import { Menu, RotateCcw } from "lucide-react";
 import { NavLinks } from "./nav-links";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,17 @@ import { useDepot } from "@/lib/store";
 
 function Brand() {
   return (
-    <div className="flex items-center gap-2 px-3 py-4">
-      <div className="flex size-8 items-center justify-center rounded-md bg-emerald-500 text-white">
-        <PackageSearch className="size-4.5" strokeWidth={2.25} />
-      </div>
-      <div className="leading-tight">
-        <p className="text-sm font-semibold text-white">DepotField</p>
-        <p className="text-[11px] text-slate-400">Warehouse Operations</p>
-      </div>
+    <div className="flex items-center gap-2 px-4 py-4">
+      <span className="flex h-6 items-center border border-sidebar-border px-1.5 font-mono text-[11px] font-semibold tracking-wide text-sidebar-foreground/80">
+        DF
+      </span>
+      <p
+        className="text-lg leading-none font-bold tracking-tight"
+        style={{ fontFamily: "var(--font-big-shoulders-stencil)" }}
+      >
+        <span className="text-sidebar-foreground">DEPOT</span>
+        <span className="text-primary">FIELD</span>
+      </p>
     </div>
   );
 }
@@ -27,9 +30,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <aside className="hidden md:flex md:w-60 md:flex-col md:border-r md:border-sidebar-border md:bg-sidebar">
+      <aside className="hidden md:flex md:w-56 md:flex-col md:border-r md:border-sidebar-border md:bg-sidebar">
         <Brand />
-        <div className="flex-1 overflow-y-auto px-3 py-2">
+        <div className="flex-1 overflow-y-auto py-2">
           <NavLinks />
         </div>
         <div className="border-t border-sidebar-border p-3">
@@ -39,7 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 resetDemoData();
               }
             }}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center gap-2 px-1 py-1.5 text-[11px] font-medium text-sidebar-foreground/50 transition-colors hover:text-sidebar-foreground"
           >
             <RotateCcw className="size-3.5" />
             Reset demo data
@@ -48,14 +51,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-border bg-sidebar px-4 py-3 md:hidden">
+        <header className="flex items-center gap-3 border-b border-sidebar-border bg-sidebar px-2 py-2 md:hidden">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
               render={
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white hover:bg-white/10 hover:text-white"
+                  className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 />
               }
             >
@@ -64,15 +67,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <SheetContent side="left" className="w-64 border-sidebar-border bg-sidebar p-0">
               <SheetTitle className="sr-only">Navigation</SheetTitle>
               <Brand />
-              <div className="px-3 py-2">
+              <div className="py-2">
                 <NavLinks onNavigate={() => setOpen(false)} />
               </div>
             </SheetContent>
           </Sheet>
-          <span className="text-sm font-semibold text-white">DepotField</span>
+          <p
+            className="text-base leading-none font-bold tracking-tight"
+            style={{ fontFamily: "var(--font-big-shoulders-stencil)" }}
+          >
+            <span className="text-sidebar-foreground">DEPOT</span>
+            <span className="text-primary">FIELD</span>
+          </p>
         </header>
 
-        <main className="flex-1 overflow-x-hidden bg-background px-4 py-6 sm:px-6 lg:px-8">
+        <main className="flex-1 overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>

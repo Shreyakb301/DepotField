@@ -11,7 +11,14 @@ import {
   Cell,
 } from "recharts";
 
-const COLORS = ["#059669", "#0EA5E9", "#F59E0B", "#8B5CF6", "#E11D48"];
+// Each category gets a color that means something, not a rainbow cycle.
+const CATEGORY_COLORS: Record<string, string> = {
+  Electronics: "#375A7F", // steel / wire blue
+  Apparel: "#6E4A3F", // leather brown
+  "Home & Garden": "#2F5D3A", // garden green
+  Outdoor: "#C2410C", // hazard orange
+  Office: "#C98A12", // brass gold
+};
 
 export function InventoryByCategoryChart({
   data,
@@ -19,33 +26,40 @@ export function InventoryByCategoryChart({
   data: { category: string; stock: number }[];
 }) {
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8E4" vertical={false} />
+    <ResponsiveContainer width="100%" height={230}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="0" stroke="#D9CFB8" vertical={false} />
         <XAxis
           dataKey="category"
-          tick={{ fontSize: 11, fill: "#64748B" }}
+          tick={{ fontSize: 11, fill: "#6E6656", fontFamily: "var(--font-plex-mono)" }}
           tickLine={false}
-          axisLine={{ stroke: "#E2E8E4" }}
+          axisLine={{ stroke: "#B8AA88" }}
           interval={0}
           angle={-12}
           textAnchor="end"
           height={44}
         />
-        <YAxis tick={{ fontSize: 11, fill: "#64748B" }} tickLine={false} axisLine={false} width={40} />
+        <YAxis
+          tick={{ fontSize: 11, fill: "#6E6656", fontFamily: "var(--font-plex-mono)" }}
+          tickLine={false}
+          axisLine={false}
+          width={40}
+        />
         <Tooltip
-          cursor={{ fill: "#F1F5F4" }}
+          cursor={{ fill: "#E8E0CC" }}
           contentStyle={{
             fontSize: 12,
-            borderRadius: 8,
-            border: "1px solid #E2E8E4",
-            boxShadow: "0 2px 8px rgba(15,23,42,0.08)",
+            fontFamily: "var(--font-plex-sans)",
+            borderRadius: 2,
+            border: "1px solid #D9CFB8",
+            background: "#FAF6EC",
+            boxShadow: "none",
           }}
           formatter={(value) => [`${value} units`, "Stock on hand"]}
         />
-        <Bar dataKey="stock" radius={[4, 4, 0, 0]} maxBarSize={44}>
-          {data.map((entry, i) => (
-            <Cell key={entry.category} fill={COLORS[i % COLORS.length]} />
+        <Bar dataKey="stock" radius={[1, 1, 0, 0]} maxBarSize={40}>
+          {data.map((entry) => (
+            <Cell key={entry.category} fill={CATEGORY_COLORS[entry.category] ?? "#6E6656"} />
           ))}
         </Bar>
       </BarChart>

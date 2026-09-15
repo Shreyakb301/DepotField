@@ -27,18 +27,22 @@ export function daysUntil(iso: string): number {
   return Math.round((target - today) / 86_400_000);
 }
 
-type BadgeTone = "neutral" | "emerald" | "amber" | "sky" | "rose" | "violet";
+/**
+ * Ink colors, the way a warehouse stamp pad has a handful of colors and
+ * each one means something specific — not a decorative rainbow.
+ */
+type BadgeTone = "neutral" | "ok" | "flag" | "danger" | "info" | "cardboard";
 
 export const ORDER_STATUS_TONE: Record<OrderStatus, BadgeTone> = {
-  New: "sky",
-  Picking: "amber",
-  Packed: "violet",
-  Shipped: "emerald",
+  New: "info",
+  Picking: "flag",
+  Packed: "cardboard",
+  Shipped: "ok",
 };
 
 export const PRODUCT_STATUS_TONE: Record<ProductStatus, BadgeTone> = {
-  active: "emerald",
-  quality_hold: "amber",
+  active: "ok",
+  quality_hold: "flag",
   discontinued: "neutral",
 };
 
@@ -49,26 +53,36 @@ export const PRODUCT_STATUS_LABEL: Record<ProductStatus, string> = {
 };
 
 export const PO_STATUS_TONE: Record<POStatus, BadgeTone> = {
-  Pending: "sky",
-  "In Transit": "violet",
-  Delayed: "rose",
-  "Partially Received": "amber",
-  Received: "emerald",
+  Pending: "info",
+  "In Transit": "cardboard",
+  Delayed: "danger",
+  "Partially Received": "flag",
+  Received: "ok",
 };
 
 export const QUALITY_HOLD_TONE: Record<QualityHoldStatus, BadgeTone> = {
-  "On Hold": "amber",
-  Released: "emerald",
-  Rejected: "rose",
+  "On Hold": "flag",
+  Released: "ok",
+  Rejected: "danger",
 };
 
 export const TONE_CLASSNAMES: Record<BadgeTone, string> = {
-  neutral: "bg-slate-100 text-slate-700 border-slate-200",
-  emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  amber: "bg-amber-50 text-amber-700 border-amber-200",
-  sky: "bg-sky-50 text-sky-700 border-sky-200",
-  rose: "bg-rose-50 text-rose-700 border-rose-200",
-  violet: "bg-violet-50 text-violet-700 border-violet-200",
+  neutral: "bg-secondary text-ink-soft border-rule-strong",
+  ok: "bg-stamp-ok-soft text-stamp-ok border-stamp-ok/45",
+  flag: "bg-stamp-flag-soft text-stamp-flag border-stamp-flag/45",
+  danger: "bg-stamp-danger-soft text-stamp-danger border-stamp-danger/45",
+  info: "bg-stamp-info-soft text-stamp-info border-stamp-info/45",
+  cardboard: "bg-stamp-cardboard-soft text-stamp-cardboard border-stamp-cardboard/45",
+};
+
+/** Hex values for contexts that can't take Tailwind classes (Recharts). */
+export const TONE_HEX: Record<BadgeTone, string> = {
+  neutral: "#6E6656",
+  ok: "#2F5D3A",
+  flag: "#C98A12",
+  danger: "#A6321E",
+  info: "#375A7F",
+  cardboard: "#8B6A4F",
 };
 
 export type { BadgeTone };

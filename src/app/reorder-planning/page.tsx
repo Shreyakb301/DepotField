@@ -38,80 +38,76 @@ export default function ReorderPlanningPage() {
         description="Products below their reorder point, with a suggested quantity based on recent demand."
       />
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
-              <TableHead className="text-right">Reorder Pt.</TableHead>
-              <TableHead className="text-right">Weekly Demand</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead className="text-right">Lead Time</TableHead>
-              <TableHead className="text-right">Suggested Qty</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {candidates.map((p) => {
-              const supplier = data.suppliers.find((s) => s.id === p.supplierId);
-              const existingPO = openPOFor(data.purchaseOrders, p.id);
-              return (
-                <TableRow key={p.id}>
-                  <TableCell>
-                    <p className="font-medium text-foreground">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.sku}</p>
-                  </TableCell>
-                  <TableCell className="text-right font-semibold text-amber-700">
-                    {p.stock}
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {p.reorderPoint}
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {p.weeklyDemand}/wk
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{supplier?.name}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {supplier?.leadTimeDays}d
-                  </TableCell>
-                  <TableCell className="text-right font-medium text-foreground">
-                    {p.reorderQty}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {existingPO ? (
-                      <div className="flex items-center justify-end gap-1.5">
+      {candidates.length === 0 ? (
+        <div className="flex items-center gap-2 border border-rule py-10 text-ink-soft">
+          <CheckCircle2 className="ml-4 size-5 text-stamp-ok" />
+          Every product is stocked above its reorder point.
+        </div>
+      ) : (
+        <div className="border border-rule">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b-2 border-ink hover:bg-transparent">
+                <TableHead className="text-ink">Product</TableHead>
+                <TableHead className="text-right text-ink">Stock</TableHead>
+                <TableHead className="text-right text-ink">Reorder Pt.</TableHead>
+                <TableHead className="text-right text-ink">Weekly Demand</TableHead>
+                <TableHead className="text-ink">Supplier</TableHead>
+                <TableHead className="text-right text-ink">Lead Time</TableHead>
+                <TableHead className="text-right text-ink">Suggested Qty</TableHead>
+                <TableHead className="text-right text-ink">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {candidates.map((p) => {
+                const supplier = data.suppliers.find((s) => s.id === p.supplierId);
+                const existingPO = openPOFor(data.purchaseOrders, p.id);
+                return (
+                  <TableRow key={p.id} className="border-rule hover:bg-secondary/40">
+                    <TableCell>
+                      <p className="font-medium text-ink">{p.name}</p>
+                      <p className="font-mono text-[11px] text-ink-faint">{p.sku}</p>
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-semibold text-stamp-flag">
+                      {p.stock}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-ink-soft">
+                      {p.reorderPoint}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-ink-soft">
+                      {p.weeklyDemand}/wk
+                    </TableCell>
+                    <TableCell className="text-ink-soft">{supplier?.name}</TableCell>
+                    <TableCell className="text-right font-mono text-ink-soft">
+                      {supplier?.leadTimeDays}d
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-medium text-ink">
+                      {p.reorderQty}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {existingPO ? (
                         <StatusBadge
                           label={`${existingPO.poNumber} · ${existingPO.status}`}
                           tone={PO_STATUS_TONE[existingPO.status]}
                         />
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => createPurchaseOrder(p.id, p.reorderQty)}
-                      >
-                        <PackagePlus className="size-3.5" />
-                        Create PO
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-            {candidates.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={8} className="py-10 text-center">
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <CheckCircle2 className="size-5 text-emerald-600" />
-                    Every product is stocked above its reorder point.
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="rounded-[3px] bg-primary text-primary-foreground hover:bg-primary/90"
+                          onClick={() => createPurchaseOrder(p.id, p.reorderQty)}
+                        >
+                          <PackagePlus className="size-3.5" />
+                          Create PO
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
