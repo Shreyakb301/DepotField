@@ -49,6 +49,8 @@ interface DepotContextValue {
   updateProductStatus: (productId: string, status: ProductStatus) => void;
   setOrderStatus: (orderId: string, status: OrderStatus) => void;
   advanceOrder: (orderId: string) => void;
+  updateOrderPriority: (orderId: string, priority: OrderPriority) => void;
+  updateOrderNotes: (orderId: string, notes: string) => void;
   createOrder: (input: {
     customer: string;
     items: OrderItem[];
@@ -117,6 +119,26 @@ export function DepotProvider({ children }: { children: ReactNode }) {
         orders: prev.orders.map((o) =>
           o.id === orderId
             ? { ...o, status, updatedAt: todayISO() }
+            : o,
+        ),
+      }));
+    }
+
+    function updateOrderPriority(orderId: string, priority: OrderPriority) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId ? { ...o, priority, updatedAt: todayISO() } : o,
+        ),
+      }));
+    }
+
+    function updateOrderNotes(orderId: string, notes: string) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId
+            ? { ...o, notes: notes.trim() || undefined, updatedAt: todayISO() }
             : o,
         ),
       }));
@@ -318,6 +340,8 @@ export function DepotProvider({ children }: { children: ReactNode }) {
       updateProductStatus,
       setOrderStatus,
       advanceOrder,
+      updateOrderPriority,
+      updateOrderNotes,
       createOrder,
       receivePO,
       releaseQualityHold,

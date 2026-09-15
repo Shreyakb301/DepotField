@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { Panel } from "@/components/dashboard-box";
 import { SolidBar } from "@/components/solid-bar";
+import { OrderDetailSheet } from "@/components/order-detail-sheet";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
@@ -69,6 +70,7 @@ export default function OverviewPage() {
     key: "updatedAt",
     dir: "desc",
   });
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const toFulfill = ordersToFulfill(data);
   const lowStock = lowStockProducts(data);
@@ -257,8 +259,12 @@ export default function OverviewPage() {
               </TableHeader>
               <TableBody>
                 {sortedOrders.map((o) => (
-                  <TableRow key={o.id} className="border-rule hover:bg-secondary/50">
-                    <TableCell className="font-semibold text-ink">{o.orderNumber}</TableCell>
+                  <TableRow
+                    key={o.id}
+                    onClick={() => setSelectedOrderId(o.id)}
+                    className="cursor-pointer border-rule hover:bg-secondary/50"
+                  >
+                    <TableCell className="font-semibold text-primary">{o.orderNumber}</TableCell>
                     <TableCell className="text-ink-soft">{o.customer}</TableCell>
                     <TableCell className="text-right text-ink-soft">
                       {o.items.reduce((s, i) => s + i.qty, 0)}
@@ -301,6 +307,11 @@ export default function OverviewPage() {
           </div>
         </Panel>
       </div>
+
+      <OrderDetailSheet
+        orderId={selectedOrderId}
+        onOpenChange={(open) => !open && setSelectedOrderId(null)}
+      />
     </div>
   );
 }
