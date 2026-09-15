@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
+import { Panel } from "@/components/dashboard-box";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,8 +80,7 @@ export default function ReceivingPage() {
         description="Incoming supplier purchase orders and the quality-hold inspection queue."
       />
 
-      <section>
-        <h2 className="border-b border-ink pb-1.5 text-sm font-bold text-ink">PURCHASE ORDERS</h2>
+      <Panel title="Purchase Orders">
         <ul className="divide-y divide-rule">
           {sortedPOs.map((po) => {
             const totalOrdered = po.items.reduce((s, i) => s + i.qtyOrdered, 0);
@@ -89,7 +89,7 @@ export default function ReceivingPage() {
             return (
               <li
                 key={po.id}
-                className="flex flex-col gap-2 py-3.5 text-sm sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 py-3 text-sm first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <div className="flex items-center gap-2">
@@ -109,16 +109,7 @@ export default function ReceivingPage() {
                   <span className="text-xs text-ink-faint">
                     {totalReceived}/{totalOrdered} units
                   </span>
-                  <Button
-                    size="sm"
-                    disabled={!canReceive}
-                    onClick={() => openReceive(po)}
-                    className={cn(
-                      canReceive
-                        ? "bg-ink text-background hover:bg-ink/85"
-                        : "bg-secondary text-ink-faint",
-                    )}
-                  >
+                  <Button size="sm" disabled={!canReceive} onClick={() => openReceive(po)}>
                     {po.status === "Received" ? "Received" : "Receive"}
                   </Button>
                 </div>
@@ -126,82 +117,78 @@ export default function ReceivingPage() {
             );
           })}
         </ul>
-      </section>
+      </Panel>
 
-      <section className="mt-8">
-        <div className="flex items-baseline justify-between border-b border-ink pb-1.5">
-          <h2 className="text-sm font-bold text-ink">QUALITY HOLD QUEUE</h2>
-          <span className="text-xs text-ink-faint">{openHolds.length} awaiting inspection</span>
-        </div>
-        <ul className="divide-y divide-rule">
-          {openHolds.length === 0 && (
-            <li className="py-3 text-sm text-ink-soft">Nothing currently on quality hold.</li>
-          )}
-          {openHolds.map((entry) => {
-            const product = productById(data, entry.productId);
-            const po = data.purchaseOrders.find((p) => p.id === entry.poId);
-            return (
-              <li
-                key={entry.id}
-                className="flex flex-col gap-3 py-3.5 text-sm sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <StatusBadge label="Hold" tone="bad" />
-                  <div>
-                    <p className="text-ink">
-                      {product?.name ?? "Unknown product"}
-                      <span className="ml-2 text-ink-faint">{entry.qty} units</span>
-                    </p>
-                    <p className="text-xs text-ink-soft">{entry.reason}</p>
-                    <p className="text-[11px] text-ink-faint">
-                      {po?.poNumber ?? "—"} &nbsp; flagged {formatDate(entry.flaggedAt)}
-                    </p>
+      <div className="mt-4">
+        <Panel
+          title="Quality Hold Queue"
+          action={<span className="text-xs text-ink-faint">{openHolds.length} awaiting inspection</span>}
+        >
+          <ul className="divide-y divide-rule">
+            {openHolds.length === 0 && (
+              <li className="py-3 text-sm text-ink-soft">Nothing currently on quality hold.</li>
+            )}
+            {openHolds.map((entry) => {
+              const product = productById(data, entry.productId);
+              const po = data.purchaseOrders.find((p) => p.id === entry.poId);
+              return (
+                <li
+                  key={entry.id}
+                  className="flex flex-col gap-3 py-3 text-sm first:pt-0 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <StatusBadge label="Hold" tone="amber" />
+                    <div>
+                      <p className="text-ink">
+                        {product?.name ?? "Unknown product"}
+                        <span className="ml-2 text-ink-faint">{entry.qty} units</span>
+                      </p>
+                      <p className="text-xs text-ink-soft">{entry.reason}</p>
+                      <p className="text-[11px] text-ink-faint">
+                        {po?.poNumber ?? "—"} &nbsp; flagged {formatDate(entry.flaggedAt)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-good text-good hover:bg-good hover:text-white"
-                    onClick={() => releaseQualityHold(entry.id)}
-                  >
-                    Release to stock
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-bad text-bad hover:bg-bad hover:text-white"
-                    onClick={() => rejectQualityHold(entry.id)}
-                  >
-                    Reject
-                  </Button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-        {resolvedHolds.length > 0 && (
-          <div className="mt-2 border-t border-rule pt-3">
-            <p className="mb-2 text-xs font-bold text-ink">RESOLVED HISTORY</p>
-            <ul className="flex flex-col gap-1.5">
-              {resolvedHolds.map((entry) => {
-                const product = productById(data, entry.productId);
-                return (
-                  <li key={entry.id} className="flex items-center justify-between text-xs text-ink-faint">
-                    <span>
-                      {product?.name ?? "Unknown product"}, {entry.qty} units, {entry.reason}
-                    </span>
-                    <StatusBadge label={entry.status} tone={QUALITY_HOLD_TONE[entry.status]} />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-      </section>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => releaseQualityHold(entry.id)}>
+                      Release to stock
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-solid-red text-solid-red hover:bg-solid-red hover:text-white"
+                      onClick={() => rejectQualityHold(entry.id)}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {resolvedHolds.length > 0 && (
+            <div className="mt-2 border-t border-rule pt-3">
+              <p className="mb-2 text-xs font-bold text-ink">Resolved History</p>
+              <ul className="flex flex-col gap-1.5">
+                {resolvedHolds.map((entry) => {
+                  const product = productById(data, entry.productId);
+                  return (
+                    <li key={entry.id} className="flex items-center justify-between text-xs text-ink-faint">
+                      <span>
+                        {product?.name ?? "Unknown product"}, {entry.qty} units, {entry.reason}
+                      </span>
+                      <StatusBadge label={entry.status} tone={QUALITY_HOLD_TONE[entry.status]} />
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </Panel>
+      </div>
 
       <Dialog open={!!receivingPO} onOpenChange={(o) => !o && setReceivingPO(null)}>
-        <DialogContent className="border-2 border-ink ring-0 sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           {receivingPO && (
             <>
               <DialogHeader>
@@ -234,7 +221,7 @@ export default function ReceivingPage() {
                             className="w-16 border border-rule bg-background px-1.5 py-1 text-sm text-ink outline-none focus-visible:border-ink"
                           />
                         </label>
-                        <div className="flex border border-ink">
+                        <div className="flex overflow-hidden rounded-sm border border-rule">
                           <button
                             type="button"
                             onClick={() =>
@@ -245,7 +232,7 @@ export default function ReceivingPage() {
                             className={cn(
                               "px-2 py-1 text-xs",
                               line.destination === "stock"
-                                ? "bg-ink text-background"
+                                ? "bg-solid-green text-white"
                                 : "bg-transparent text-ink-soft hover:bg-secondary",
                             )}
                           >
@@ -259,9 +246,9 @@ export default function ReceivingPage() {
                               )
                             }
                             className={cn(
-                              "border-l border-ink px-2 py-1 text-xs",
+                              "border-l border-rule px-2 py-1 text-xs",
                               line.destination === "hold"
-                                ? "bg-bad text-white"
+                                ? "bg-solid-amber text-white"
                                 : "bg-transparent text-ink-soft hover:bg-secondary",
                             )}
                           >
@@ -292,10 +279,7 @@ export default function ReceivingPage() {
                 })}
               </div>
               <DialogFooter>
-                <Button
-                  className="w-full bg-ink text-background hover:bg-ink/85"
-                  onClick={submitReceive}
-                >
+                <Button className="w-full" onClick={submitReceive}>
                   Confirm receipt
                 </Button>
               </DialogFooter>

@@ -2,6 +2,7 @@
 
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
+import { Panel } from "@/components/dashboard-box";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -40,6 +41,7 @@ export default function ReorderPlanningPage() {
           Every product is stocked above its reorder point.
         </p>
       ) : (
+        <Panel title="Products Below Reorder Point">
         <Table>
           <TableHeader>
             <TableRow className="border-b-2 border-ink hover:bg-transparent">
@@ -63,7 +65,7 @@ export default function ReorderPlanningPage() {
                     <p className="text-ink">{p.name}</p>
                     <p className="text-[11px] text-ink-faint">{p.sku}</p>
                   </TableCell>
-                  <TableCell className="text-right font-bold text-bad">{p.stock}</TableCell>
+                  <TableCell className="text-right font-bold text-solid-red">{p.stock}</TableCell>
                   <TableCell className="text-right text-ink-soft">{p.reorderPoint}</TableCell>
                   <TableCell className="text-right text-ink-soft">{p.weeklyDemand}/wk</TableCell>
                   <TableCell className="text-ink-soft">{supplier?.name}</TableCell>
@@ -78,7 +80,6 @@ export default function ReorderPlanningPage() {
                     ) : (
                       <Button
                         size="sm"
-                        className="bg-ink text-background hover:bg-ink/85"
                         onClick={() => createPurchaseOrder(p.id, p.reorderQty)}
                       >
                         Create PO
@@ -90,6 +91,7 @@ export default function ReorderPlanningPage() {
             })}
           </TableBody>
         </Table>
+        </Panel>
       )}
     </div>
   );

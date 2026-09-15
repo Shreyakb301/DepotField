@@ -27,20 +27,50 @@ export function daysUntil(iso: string): number {
   return Math.round((target - today) / 86_400_000);
 }
 
-/** Two signals, nothing decorative: something needs attention, or something's done. */
-export type StatusTone = "default" | "good" | "bad";
+/** A small set of solid dashboard colors. Each one means the same thing everywhere it appears. */
+export type StatusTone = "blue" | "amber" | "green" | "red" | "purple" | "teal" | "slate";
+
+export const TONE_HEX: Record<StatusTone, string> = {
+  blue: "#2563EB",
+  amber: "#D97706",
+  green: "#16A34A",
+  red: "#DC2626",
+  purple: "#7C3AED",
+  teal: "#0D9488",
+  slate: "#475569",
+};
+
+export const TONE_BG_CLASS: Record<StatusTone, string> = {
+  blue: "bg-solid-blue",
+  amber: "bg-solid-amber",
+  green: "bg-solid-green",
+  red: "bg-solid-red",
+  purple: "bg-solid-purple",
+  teal: "bg-solid-teal",
+  slate: "bg-solid-slate",
+};
+
+export const TONE_TEXT_CLASS: Record<StatusTone, string> = {
+  blue: "text-solid-blue",
+  amber: "text-solid-amber",
+  green: "text-solid-green",
+  red: "text-solid-red",
+  purple: "text-solid-purple",
+  teal: "text-solid-teal",
+  slate: "text-solid-slate",
+};
 
 export const ORDER_STATUS_TONE: Record<OrderStatus, StatusTone> = {
-  New: "default",
-  Picking: "default",
-  Packed: "default",
-  Shipped: "good",
+  New: "blue",
+  Picking: "amber",
+  Packed: "purple",
+  Shipped: "green",
 };
 
 export const PRODUCT_STATUS_TONE: Record<ProductStatus, StatusTone> = {
-  active: "default",
-  quality_hold: "bad",
-  discontinued: "default",
+  active: "green",
+  quality_hold: "red",
+  discontinued: "slate",
 };
 
 export const PRODUCT_STATUS_LABEL: Record<ProductStatus, string> = {
@@ -50,15 +80,15 @@ export const PRODUCT_STATUS_LABEL: Record<ProductStatus, string> = {
 };
 
 export const PO_STATUS_TONE: Record<POStatus, StatusTone> = {
-  Pending: "default",
-  "In Transit": "default",
-  Delayed: "bad",
-  "Partially Received": "default",
-  Received: "good",
+  Pending: "blue",
+  "In Transit": "purple",
+  Delayed: "red",
+  "Partially Received": "amber",
+  Received: "green",
 };
 
 export const QUALITY_HOLD_TONE: Record<QualityHoldStatus, StatusTone> = {
-  "On Hold": "bad",
-  Released: "good",
-  Rejected: "bad",
+  "On Hold": "amber",
+  Released: "green",
+  Rejected: "red",
 };

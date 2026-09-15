@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
+import { Panel } from "@/components/dashboard-box";
+import { StatusBadge } from "@/components/status-badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +16,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { ORDER_STATUSES, type Order, type OrderStatus } from "@/lib/types";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDate, ORDER_STATUS_TONE } from "@/lib/format";
 import { orderTotal, productById } from "@/lib/selectors";
 
 const NEXT_ACTION_LABEL: Record<OrderStatus, string> = {
@@ -62,16 +64,16 @@ export default function OrdersPage() {
         className="mb-5 max-w-xs border-rule bg-background text-ink placeholder:text-ink-faint focus-visible:border-ink"
       />
 
-      <div className="grid grid-cols-1 divide-y divide-rule border-t-2 border-ink sm:grid-cols-2 sm:divide-y-0 sm:divide-x sm:border-l sm:border-r xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {columns.map(({ status, orders }) => (
-          <div key={status} className="flex flex-col">
-            <div className="flex items-baseline justify-between border-b border-rule px-3 py-2">
-              <h2 className="text-sm font-bold text-ink">{status.toUpperCase()}</h2>
-              <span className="text-xs text-ink-faint">{orders.length}</span>
-            </div>
-            <div className="flex flex-col divide-y divide-rule">
+          <Panel
+            key={status}
+            title={status}
+            action={<StatusBadge label={String(orders.length)} tone={ORDER_STATUS_TONE[status]} />}
+          >
+            <div className="flex flex-col gap-2">
               {orders.length === 0 && (
-                <p className="px-3 py-4 text-xs text-ink-faint">no orders</p>
+                <p className="py-4 text-center text-xs text-ink-faint">No orders</p>
               )}
               {orders.map((o) => (
                 <div
@@ -85,10 +87,10 @@ export default function OrdersPage() {
                       setSelected(o.id);
                     }
                   }}
-                  className="flex cursor-pointer flex-col gap-1 px-3 py-3 text-sm transition-colors hover:bg-secondary/50"
+                  className="flex cursor-pointer flex-col gap-1 rounded-md border border-rule p-2.5 text-sm transition-colors hover:border-primary hover:bg-secondary/40"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-ink">{o.orderNumber}</span>
+                    <span className="font-bold text-primary">{o.orderNumber}</span>
                     <span className="text-xs text-ink-faint">{formatDate(o.updatedAt)}</span>
                   </div>
                   <p className="text-ink-soft">{o.customer}</p>
@@ -99,8 +101,7 @@ export default function OrdersPage() {
                   {status !== "Shipped" && (
                     <Button
                       size="xs"
-                      variant="outline"
-                      className="mt-1 justify-center border-ink text-ink hover:bg-ink hover:text-background"
+                      className="mt-1 justify-center"
                       onClick={(e) => {
                         e.stopPropagation();
                         advanceOrder(o.id);
@@ -112,25 +113,30 @@ export default function OrdersPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </Panel>
         ))}
       </div>
 
       <Sheet open={!!selectedOrder} onOpenChange={(o) => !o && setSelected(null)}>
-        <SheetContent className="flex flex-col gap-0 border-l-2 border-ink bg-background p-0">
+        <SheetContent className="flex flex-col gap-0 bg-background p-0">
           {selectedOrder && (
             <>
-              <SheetHeader className="border-b-2 border-ink">
+              <SheetHeader className="border-b border-rule">
                 <SheetTitle className="text-ink">{selectedOrder.orderNumber}</SheetTitle>
                 <SheetDescription className="text-ink-soft">
                   {selectedOrder.customer}
                   <br />
                   placed {formatDate(selectedOrder.createdAt)}
                 </SheetDescription>
+                <StatusBadge
+                  label={selectedOrder.status}
+                  tone={ORDER_STATUS_TONE[selectedOrder.status]}
+                  className="mt-1 w-fit"
+                />
               </SheetHeader>
               <div className="flex-1 overflow-y-auto p-4">
-                <p className="mb-2 text-xs font-bold text-ink">LINE ITEMS</p>
-                <ul className="divide-y divide-rule border border-rule">
+                <p className="mb-2 text-xs font-bold text-ink">Line Items</p>
+                <ul className="divide-y divide-rule rounded-md border border-rule">
                   {selectedOrder.items.map((item) => {
                     const product = productById(data, item.productId);
                     return (
@@ -151,8 +157,8 @@ export default function OrdersPage() {
                     );
                   })}
                 </ul>
-                <div className="mt-3 flex items-center justify-between border border-ink px-3 py-2 text-sm">
-                  <span className="font-bold text-ink">ORDER TOTAL</span>
+                <div className="mt-3 flex items-center justify-between rounded-md bg-secondary px-3 py-2 text-sm">
+                  <span className="font-bold text-ink">Order Total</span>
                   <span className="font-bold text-ink">
                     {formatCurrency(orderTotal(data, selectedOrder))}
                   </span>
@@ -160,10 +166,7 @@ export default function OrdersPage() {
               </div>
               {selectedOrder.status !== "Shipped" && (
                 <SheetFooter className="border-t border-rule">
-                  <Button
-                    className="w-full bg-ink text-background hover:bg-ink/85"
-                    onClick={() => advanceOrder(selectedOrder.id)}
-                  >
+                  <Button className="w-full" onClick={() => advanceOrder(selectedOrder.id)}>
                     {NEXT_ACTION_LABEL[selectedOrder.status]} &gt;
                   </Button>
                 </SheetFooter>

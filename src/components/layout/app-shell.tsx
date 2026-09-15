@@ -1,5 +1,6 @@
 "use client";
 
+import { RotateCcw } from "lucide-react";
 import { NavLinks } from "./nav-links";
 import { useDepot } from "@/lib/store";
 
@@ -8,27 +9,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
-      <header className="border-b-2 border-ink">
-        <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-2 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <span className="text-sm font-bold whitespace-nowrap text-ink">
-              DEPOTFIELD
-              <span aria-hidden className="cursor-blink ml-0.5">
-                {"█"}
-              </span>
-            </span>
-            <NavLinks />
-          </div>
+      <div className="bg-ink">
+        <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-4 py-3 sm:px-6">
+          <span className="text-lg font-bold tracking-tight text-white">DepotField</span>
           <button
             onClick={() => {
               if (confirm("Reset all demo data to its original seeded state?")) {
                 resetDemoData();
               }
             }}
-            className="text-left text-xs text-ink-faint hover:text-ink sm:text-right"
+            className="flex items-center gap-1.5 text-xs text-white/70 hover:text-white"
           >
-            reset demo data
+            <RotateCcw className="size-3.5" />
+            Reset demo data
           </button>
+        </div>
+      </div>
+
+      <header className="border-b border-rule bg-card">
+        <div className="mx-auto w-full max-w-[1400px] overflow-x-auto px-4 sm:px-6">
+          <NavLinks />
         </div>
       </header>
 

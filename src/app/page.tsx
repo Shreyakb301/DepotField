@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useDepot } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
-import { AsciiBar } from "@/components/ascii-bar";
+import { KpiBox, Panel } from "@/components/dashboard-box";
+import { SolidBar } from "@/components/solid-bar";
 import {
   inventoryByCategory,
   inventoryValue,
@@ -13,7 +14,9 @@ import {
   ordersToFulfill,
   warehouseCapacityPct,
 } from "@/lib/selectors";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDate, ORDER_STATUS_TONE } from "@/lib/format";
+
+const CATEGORY_TONE = ["blue", "amber", "green", "purple", "slate", "red"] as const;
 
 export default function OverviewPage() {
   const { data } = useDepot();
@@ -38,128 +41,131 @@ export default function OverviewPage() {
         description="Fulfillment, inventory, and warehouse capacity as of today."
       />
 
-      <div className="flex flex-wrap gap-x-8 gap-y-2 border-b border-rule pb-5 text-sm">
-        <div>
-          <span className="font-bold text-ink">ORDERS OPEN </span>
-          <span className="text-ink">{toFulfill}</span>
-          <span className="text-ink-faint"> / {data.orders.length}</span>
-        </div>
-        <div>
-          <span className="font-bold text-ink">LOW STOCK </span>
-          <span className={lowStock.length > 0 ? "font-bold text-bad" : "text-ink"}>
-            {lowStock.length}
-          </span>
-        </div>
-        <div>
-          <span className="font-bold text-ink">INV VALUE </span>
-          <span className="text-ink">{formatCurrency(value)}</span>
-        </div>
-        <div>
-          <span className="font-bold text-ink">CAPACITY </span>
-          <span className={capacityPct >= 85 ? "font-bold text-bad" : "text-ink"}>
-            {capacityPct}%
-          </span>
-        </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiBox
+          label="Orders Open"
+          value={String(toFulfill)}
+          hint={`of ${data.orders.length} total`}
+          tone="blue"
+        />
+        <KpiBox
+          label="Low Stock"
+          value={String(lowStock.length)}
+          hint={lowStock.length > 0 ? "below reorder point" : "all stocked"}
+          tone={lowStock.length > 0 ? "red" : "green"}
+        />
+        <KpiBox
+          label="Inventory Value"
+          value={formatCurrency(value)}
+          hint={`${data.products.length} SKUs`}
+          tone="green"
+        />
+        <KpiBox
+          label="Warehouse Capacity"
+          value={`${capacityPct}%`}
+          hint="16 bins"
+          tone={capacityPct >= 85 ? "red" : "blue"}
+        />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-8 overflow-x-auto lg:grid-cols-2">
-        <section>
-          <h2 className="mb-3 text-sm font-bold text-ink">INVENTORY BY CATEGORY</h2>
-          <div className="flex flex-col gap-1.5 text-sm">
-            {byCategory.map((c) => (
-              <div key={c.category} className="flex items-center gap-2">
-                <span className="w-52 shrink-0 truncate text-ink-soft">{c.category}</span>
-                <AsciiBar value={c.stock} max={maxCategory} width={20} />
-                <span className="w-10 shrink-0 text-right text-ink">{c.stock}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-        <section>
-          <h2 className="mb-3 text-sm font-bold text-ink">ORDERS BY STATUS</h2>
-          <div className="flex flex-col gap-1.5 text-sm">
-            {byStatus.map((s) => (
-              <div key={s.status} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 truncate text-ink-soft">{s.status}</span>
-                <AsciiBar
-                  value={s.count}
-                  max={maxStatus}
-                  width={20}
-                  tone={s.status === "Shipped" ? "good" : "default"}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel title="Inventory by Category">
+          <div className="flex flex-col gap-2.5">
+            {byCategory.map((c, i) => (
+              <div key={c.category} className="flex items-center gap-3 text-sm">
+                <span className="w-40 shrink-0 truncate text-ink-soft">{c.category}</span>
+                <SolidBar
+                  value={c.stock}
+                  max={maxCategory}
+                  tone={CATEGORY_TONE[i % CATEGORY_TONE.length]}
                 />
-                <span className="w-10 shrink-0 text-right text-ink">{s.count}</span>
+                <span className="w-10 shrink-0 text-right font-bold text-ink">{c.stock}</span>
               </div>
             ))}
           </div>
-        </section>
-      </div>
+        </Panel>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <section>
-          <div className="flex items-baseline justify-between border-b border-rule pb-1.5">
-            <h2 className="text-sm font-bold text-ink">LOW STOCK</h2>
-            <Link href="/reorder-planning" className="text-xs text-ink-soft hover:text-ink hover:underline">
-              reorder plan &gt;
-            </Link>
+        <Panel title="Orders by Status">
+          <div className="flex flex-col gap-2.5">
+            {byStatus.map((s) => (
+              <div key={s.status} className="flex items-center gap-3 text-sm">
+                <span className="w-20 shrink-0 truncate text-ink-soft">{s.status}</span>
+                <SolidBar value={s.count} max={maxStatus} tone={ORDER_STATUS_TONE[s.status]} />
+                <span className="w-10 shrink-0 text-right font-bold text-ink">{s.count}</span>
+              </div>
+            ))}
           </div>
-          <ul className="divide-y divide-rule text-sm">
+        </Panel>
+
+        <Panel
+          title="Low Stock"
+          action={
+            <Link href="/reorder-planning" className="text-xs font-semibold text-primary hover:underline">
+              Reorder plan &gt;
+            </Link>
+          }
+        >
+          <ul className="divide-y divide-rule">
             {lowStock.length === 0 && (
-              <li className="py-3 text-ink-soft">Nothing is below its reorder point.</li>
+              <li className="py-3 text-sm text-ink-soft">Nothing is below its reorder point.</li>
             )}
             {lowStock.slice(0, 5).map((p) => (
-              <li key={p.id} className="flex items-center justify-between py-2.5">
+              <li key={p.id} className="flex items-center justify-between py-2 text-sm">
                 <div>
                   <span className="text-ink">{p.name}</span>
                   <span className="ml-2 text-xs text-ink-faint">
                     {p.sku} bin {p.bin}
                   </span>
                 </div>
-                <span className="font-bold text-bad">
+                <span className="font-bold text-solid-amber">
                   {p.stock}/{p.reorderPoint}
                 </span>
               </li>
             ))}
           </ul>
-        </section>
+        </Panel>
 
-        <section>
-          <div className="flex items-baseline justify-between border-b border-rule pb-1.5">
-            <h2 className="text-sm font-bold text-ink">NEEDS ATTENTION</h2>
-            <Link href="/receiving" className="text-xs text-ink-soft hover:text-ink hover:underline">
-              receiving &gt;
+        <Panel
+          title="Needs Attention"
+          action={
+            <Link href="/receiving" className="text-xs font-semibold text-primary hover:underline">
+              Receiving &gt;
             </Link>
-          </div>
-          <ul className="divide-y divide-rule text-sm">
+          }
+        >
+          <ul className="divide-y divide-rule">
             {delayedPOs.length === 0 && onHold.length === 0 && (
-              <li className="py-3 text-ink-soft">No delayed shipments or quality holds right now.</li>
+              <li className="py-3 text-sm text-ink-soft">
+                No delayed shipments or quality holds right now.
+              </li>
             )}
             {delayedPOs.map((po) => (
-              <li key={po.id} className="flex items-center justify-between py-2.5">
+              <li key={po.id} className="flex items-center justify-between py-2 text-sm">
                 <div>
                   <span className="text-ink">{po.poNumber}</span>
                   <span className="ml-2 text-xs text-ink-faint">
                     expected {formatDate(po.expectedAt)}
                   </span>
                 </div>
-                <StatusBadge label="Delayed" tone="bad" />
+                <StatusBadge label="Delayed" tone="red" />
               </li>
             ))}
             {onHold.map((q) => {
               const product = data.products.find((p) => p.id === q.productId);
               return (
-                <li key={q.id} className="flex items-center justify-between py-2.5">
+                <li key={q.id} className="flex items-center justify-between py-2 text-sm">
                   <div>
                     <span className="text-ink">{product?.name ?? "Unknown product"}</span>
                     <span className="ml-2 text-xs text-ink-faint">
                       {q.qty} units, {q.reason}
                     </span>
                   </div>
-                  <StatusBadge label="Hold" tone="bad" />
+                  <StatusBadge label="Hold" tone="amber" />
                 </li>
               );
             })}
           </ul>
-        </section>
+        </Panel>
       </div>
     </div>
   );

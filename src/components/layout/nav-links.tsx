@@ -15,7 +15,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/orders", label: "Orders" },
   { href: "/warehouse", label: "Warehouse" },
   { href: "/receiving", label: "Receiving" },
-  { href: "/reorder-planning", label: "Reorder" },
+  { href: "/reorder-planning", label: "Reorder Planning" },
 ];
 
 export function NavLinks() {
@@ -30,10 +30,10 @@ export function NavLinks() {
             key={href}
             href={href}
             className={cn(
-              "px-2 py-1 text-sm transition-colors",
+              "border-b-[3px] px-3 py-2.5 text-sm transition-colors",
               active
-                ? "bg-ink font-semibold text-background"
-                : "text-ink-soft hover:text-ink",
+                ? "border-primary font-semibold text-ink"
+                : "border-transparent text-ink-soft hover:border-rule hover:text-ink",
             )}
           >
             {label}

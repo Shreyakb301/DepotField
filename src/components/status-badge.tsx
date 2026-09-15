@@ -1,25 +1,25 @@
 import { cn } from "@/lib/utils";
-import type { StatusTone } from "@/lib/format";
+import { TONE_BG_CLASS, type StatusTone } from "@/lib/format";
 
-/** [BRACKETED] status text, the way a CLI or log line flags state — no pill, no fill. */
+/** A solid block of color, the way a departure board flags a status — not a soft tinted pill. */
 export function StatusBadge({
   label,
-  tone = "default",
+  tone,
   className,
 }: {
   label: string;
-  tone?: StatusTone;
+  tone: StatusTone;
   className?: string;
 }) {
   return (
     <span
       className={cn(
-        "font-bold whitespace-nowrap",
-        tone === "bad" ? "text-bad" : tone === "good" ? "text-good" : "text-ink",
+        "inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-white",
+        TONE_BG_CLASS[tone],
         className,
       )}
     >
-      [{label.toUpperCase()}]
+      {label}
     </span>
   );
 }
