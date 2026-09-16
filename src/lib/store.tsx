@@ -97,7 +97,7 @@ function normalizeProduct(p: Partial<Product>): Product {
     id: p.id ?? genId("p"),
     name: p.name ?? "Unknown product",
     sku: p.sku ?? "—",
-    category: p.category ?? "Home Decor",
+    category: p.category ?? "Cleansers",
     supplierId: p.supplierId ?? "",
     manufacturer: p.manufacturer ?? "Unknown",
     warrantyMonths: p.warrantyMonths,

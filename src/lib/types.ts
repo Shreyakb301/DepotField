@@ -1,16 +1,16 @@
 export type Category =
-  | "Home Decor"
-  | "Kitchen & Dining"
-  | "Bags & Totes"
-  | "Stationery & Gift"
-  | "Storage & Organisation";
+  | "Cleansers"
+  | "Serums & Treatments"
+  | "Moisturizers"
+  | "Sun Care"
+  | "Masks & Exfoliants";
 
 export const CATEGORIES: Category[] = [
-  "Home Decor",
-  "Kitchen & Dining",
-  "Bags & Totes",
-  "Stationery & Gift",
-  "Storage & Organisation",
+  "Cleansers",
+  "Serums & Treatments",
+  "Moisturizers",
+  "Sun Care",
+  "Masks & Exfoliants",
 ];
 
 export type ProductStatus = "active" | "quality_hold" | "discontinued";
