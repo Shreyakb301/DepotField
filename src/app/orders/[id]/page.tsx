@@ -7,15 +7,18 @@ import { useDepot } from "@/lib/store";
 import { AvatarBadge } from "@/components/avatar-badge";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { LookupField } from "@/components/lookup-field";
 import {
   ORDER_STATUSES,
   ORDER_PRIORITIES,
   FULFILLMENT_TEAMS,
   SHIPPING_METHODS,
+  STAFF,
   type OrderStatus,
   type OrderPriority,
   type FulfillmentTeam,
   type ShippingMethod,
+  type StaffMember,
 } from "@/lib/types";
 import { formatCurrency, formatDate, ORDER_STATUS_TONE, TONE_TEXT_CLASS } from "@/lib/format";
 import { orderTotal, productById } from "@/lib/selectors";
@@ -36,6 +39,11 @@ function isOverdue(dueDate: string, status: OrderStatus): boolean {
   return dueDate < new Date().toISOString().slice(0, 10);
 }
 
+function staffOptions(query: string) {
+  const q = query.trim().toLowerCase();
+  return STAFF.filter((s) => !q || s.toLowerCase().includes(q)).map((s) => ({ id: s, label: s }));
+}
+
 export default function OrderTicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const {
@@ -47,6 +55,8 @@ export default function OrderTicketPage({ params }: { params: Promise<{ id: stri
     updateOrderDueDate,
     setOrderVerified,
     updateOrderTeam,
+    updateOrderRequestedBy,
+    updateOrderAssignedTo,
     updateOrderShippingMethod,
     updateOrderGift,
   } = useDepot();
@@ -59,6 +69,10 @@ export default function OrderTicketPage({ params }: { params: Promise<{ id: stri
   const [draftDueDate, setDraftDueDate] = useState(order?.dueDate ?? "");
   const [draftVerified, setDraftVerified] = useState(order?.verified ?? false);
   const [draftTeam, setDraftTeam] = useState<FulfillmentTeam>(order?.team ?? "Team Alpha");
+  const [draftRequestedBy, setDraftRequestedBy] = useState<StaffMember>(order?.requestedBy ?? "Unassigned");
+  const [draftRequestedByQuery, setDraftRequestedByQuery] = useState<string>(order?.requestedBy ?? "Unassigned");
+  const [draftAssignedTo, setDraftAssignedTo] = useState<StaffMember>(order?.assignedTo ?? "Unassigned");
+  const [draftAssignedToQuery, setDraftAssignedToQuery] = useState<string>(order?.assignedTo ?? "Unassigned");
   const [draftShipping, setDraftShipping] = useState<ShippingMethod>(order?.shippingMethod ?? "Standard");
   const [draftGift, setDraftGift] = useState(order?.isGift ?? false);
   const [draftGiftMessage, setDraftGiftMessage] = useState(order?.giftMessage ?? "");
@@ -71,6 +85,10 @@ export default function OrderTicketPage({ params }: { params: Promise<{ id: stri
     setDraftDueDate(order.dueDate);
     setDraftVerified(order.verified);
     setDraftTeam(order.team);
+    setDraftRequestedBy(order.requestedBy);
+    setDraftRequestedByQuery(order.requestedBy);
+    setDraftAssignedTo(order.assignedTo);
+    setDraftAssignedToQuery(order.assignedTo);
     setDraftShipping(order.shippingMethod);
     setDraftGift(order.isGift);
     setDraftGiftMessage(order.giftMessage ?? "");
@@ -85,6 +103,8 @@ export default function OrderTicketPage({ params }: { params: Promise<{ id: stri
     if (draftDueDate !== order.dueDate) updateOrderDueDate(order.id, draftDueDate);
     if (draftVerified !== order.verified) setOrderVerified(order.id, draftVerified);
     if (draftTeam !== order.team) updateOrderTeam(order.id, draftTeam);
+    if (draftRequestedBy !== order.requestedBy) updateOrderRequestedBy(order.id, draftRequestedBy);
+    if (draftAssignedTo !== order.assignedTo) updateOrderAssignedTo(order.id, draftAssignedTo);
     if (draftShipping !== order.shippingMethod) updateOrderShippingMethod(order.id, draftShipping);
     if (draftGift !== order.isGift || draftGiftMessage !== (order.giftMessage ?? "")) {
       updateOrderGift(order.id, draftGift, draftGiftMessage);
@@ -253,6 +273,52 @@ export default function OrderTicketPage({ params }: { params: Promise<{ id: stri
                 <span className="text-ink">{order.team}</span>
               )}
             </dd>
+            <dt className="self-center text-ink-faint">Requested By</dt>
+            <dd>
+              {editing ? (
+                <LookupField
+                  query={draftRequestedByQuery}
+                  onQueryChange={setDraftRequestedByQuery}
+                  placeholder="Start typing a name..."
+                  options={staffOptions(draftRequestedByQuery)}
+                  onSelect={(opt) => {
+                    setDraftRequestedBy(opt.id as StaffMember);
+                    setDraftRequestedByQuery(opt.label);
+                  }}
+                  onClear={() => {
+                    setDraftRequestedBy("Unassigned");
+                    setDraftRequestedByQuery("Unassigned");
+                  }}
+                  className="max-w-xs"
+                />
+              ) : (
+                <span className="text-ink">{order.requestedBy}</span>
+              )}
+            </dd>
+            <dt className="self-center text-ink-faint">Assigned To</dt>
+            <dd>
+              {editing ? (
+                <LookupField
+                  query={draftAssignedToQuery}
+                  onQueryChange={setDraftAssignedToQuery}
+                  placeholder="Start typing a name..."
+                  options={staffOptions(draftAssignedToQuery)}
+                  onSelect={(opt) => {
+                    setDraftAssignedTo(opt.id as StaffMember);
+                    setDraftAssignedToQuery(opt.label);
+                  }}
+                  onClear={() => {
+                    setDraftAssignedTo("Unassigned");
+                    setDraftAssignedToQuery("Unassigned");
+                  }}
+                  className="max-w-xs"
+                />
+              ) : order.assignedTo === "Unassigned" ? (
+                <StatusBadge label="Unassigned" tone="slate" />
+              ) : (
+                <span className="text-ink">{order.assignedTo}</span>
+              )}
+            </dd>
             <dt className="self-center text-ink-faint">Shipping Method</dt>
             <dd>
               {editing ? (
@@ -362,7 +428,7 @@ export default function OrderTicketPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        <div>
+        <div className="flex flex-col gap-4">
           <div className="border border-rule bg-card p-3">
             <h2 className="mb-3 text-sm font-bold text-ink">Customer</h2>
             <div className="flex items-center gap-3">
@@ -374,6 +440,22 @@ export default function OrderTicketPage({ params }: { params: Promise<{ id: stri
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="border border-rule bg-card p-3">
+            <h2 className="mb-3 text-sm font-bold text-ink">Assigned To</h2>
+            {order.assignedTo === "Unassigned" ? (
+              <p className="text-sm text-ink-soft">Nobody is working this ticket yet.</p>
+            ) : (
+              <div className="flex items-center gap-3">
+                <AvatarBadge name={order.assignedTo} />
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-ink">{order.assignedTo}</p>
+                  <p className="text-xs text-ink-faint">{order.team}</p>
+                </div>
+              </div>
+            )}
+            <p className="mt-3 text-xs text-ink-faint">Requested by {order.requestedBy}</p>
           </div>
         </div>
       </div>

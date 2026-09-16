@@ -13,6 +13,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { ORDER_STATUSES, type OrderStatus } from "@/lib/types";
 import { formatCurrency, formatDate, ORDER_STATUS_TONE } from "@/lib/format";
 import { orderTotal } from "@/lib/selectors";
+import { cn } from "@/lib/utils";
 
 const NEXT_ACTION_LABEL: Record<OrderStatus, string> = {
   New: "Start Picking",
@@ -97,6 +98,14 @@ export default function OrdersPage() {
                     <span>{o.items.reduce((s, i) => s + i.qty, 0)} items</span>
                     <span>{formatCurrency(orderTotal(data, o))}</span>
                   </div>
+                  <p
+                    className={cn(
+                      "text-xs",
+                      o.assignedTo === "Unassigned" ? "text-ink-faint italic" : "text-ink-soft",
+                    )}
+                  >
+                    {o.assignedTo === "Unassigned" ? "Unassigned" : o.assignedTo}
+                  </p>
                   {status !== "Shipped" && (
                     <Button
                       size="xs"

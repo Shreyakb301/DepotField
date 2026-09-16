@@ -20,6 +20,7 @@ import type {
   Product,
   ProductStatus,
   ShippingMethod,
+  StaffMember,
 } from "./types";
 import { FULFILLMENT_TEAMS, ORDER_STATUSES } from "./types";
 
@@ -79,6 +80,8 @@ function normalizeOrder(o: Partial<Order>, index: number): Order {
     verified: o.verified ?? false,
     dueDate: o.dueDate ?? addDays(createdAt, DUE_DATE_DAYS[priority]),
     team: o.team ?? FULFILLMENT_TEAMS[index % FULFILLMENT_TEAMS.length],
+    requestedBy: o.requestedBy ?? "Unassigned",
+    assignedTo: o.assignedTo ?? "Unassigned",
     shippingMethod: o.shippingMethod ?? "Standard",
     isGift: o.isGift ?? false,
     giftMessage: o.giftMessage,
@@ -139,6 +142,8 @@ interface DepotContextValue {
   updateOrderDueDate: (orderId: string, dueDate: string) => void;
   setOrderVerified: (orderId: string, verified: boolean) => void;
   updateOrderTeam: (orderId: string, team: FulfillmentTeam) => void;
+  updateOrderRequestedBy: (orderId: string, requestedBy: StaffMember) => void;
+  updateOrderAssignedTo: (orderId: string, assignedTo: StaffMember) => void;
   updateOrderShippingMethod: (orderId: string, method: ShippingMethod) => void;
   updateOrderGift: (orderId: string, isGift: boolean, giftMessage?: string) => void;
   createOrder: (input: {
@@ -146,6 +151,8 @@ interface DepotContextValue {
     items: OrderItem[];
     priority: OrderPriority;
     notes?: string;
+    requestedBy?: StaffMember;
+    assignedTo?: StaffMember;
   }) => string;
   receivePO: (poId: string, receipts: ReceiptLine[]) => void;
   releaseQualityHold: (entryId: string) => void;
@@ -261,6 +268,24 @@ export function DepotProvider({ children }: { children: ReactNode }) {
       }));
     }
 
+    function updateOrderRequestedBy(orderId: string, requestedBy: StaffMember) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId ? { ...o, requestedBy, updatedAt: todayISO() } : o,
+        ),
+      }));
+    }
+
+    function updateOrderAssignedTo(orderId: string, assignedTo: StaffMember) {
+      setData((prev) => ({
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === orderId ? { ...o, assignedTo, updatedAt: todayISO() } : o,
+        ),
+      }));
+    }
+
     function updateOrderShippingMethod(orderId: string, shippingMethod: ShippingMethod) {
       setData((prev) => ({
         ...prev,
@@ -311,6 +336,8 @@ export function DepotProvider({ children }: { children: ReactNode }) {
       items: OrderItem[];
       priority: OrderPriority;
       notes?: string;
+      requestedBy?: StaffMember;
+      assignedTo?: StaffMember;
     }): string {
       const id = genId("o");
       setData((prev) => {
@@ -336,6 +363,8 @@ export function DepotProvider({ children }: { children: ReactNode }) {
               verified: false,
               dueDate: addDays(today, DUE_DATE_DAYS[input.priority]),
               team,
+              requestedBy: input.requestedBy ?? "Unassigned",
+              assignedTo: input.assignedTo ?? "Unassigned",
               shippingMethod: "Standard" as const,
               isGift: false,
               createdAt: today,
@@ -497,6 +526,8 @@ export function DepotProvider({ children }: { children: ReactNode }) {
       updateOrderDueDate,
       setOrderVerified,
       updateOrderTeam,
+      updateOrderRequestedBy,
+      updateOrderAssignedTo,
       updateOrderShippingMethod,
       updateOrderGift,
       createOrder,

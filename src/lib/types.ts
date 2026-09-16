@@ -58,6 +58,17 @@ export const ORDER_PRIORITIES: OrderPriority[] = ["Low", "Medium", "High"];
 export const FULFILLMENT_TEAMS = ["Team Alpha", "Team Bravo", "Team Charlie", "Team Delta"] as const;
 export type FulfillmentTeam = (typeof FULFILLMENT_TEAMS)[number];
 
+export const STAFF = [
+  "Unassigned",
+  "Jordan Avery",
+  "Priya Nair",
+  "Marcus Webb",
+  "Elena Torres",
+  "Diego Ruiz",
+  "Hannah Park",
+] as const;
+export type StaffMember = (typeof STAFF)[number];
+
 export type ShippingMethod = "Standard" | "Expedited" | "Same-Day";
 
 export const SHIPPING_METHODS: ShippingMethod[] = ["Standard", "Expedited", "Same-Day"];
@@ -78,6 +89,8 @@ export interface Order {
   verified: boolean;
   dueDate: string;
   team: FulfillmentTeam;
+  requestedBy: StaffMember;
+  assignedTo: StaffMember;
   shippingMethod: ShippingMethod;
   isGift: boolean;
   giftMessage?: string;

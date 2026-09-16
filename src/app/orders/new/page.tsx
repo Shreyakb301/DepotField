@@ -3,17 +3,19 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { HelpCircle, Plus, Save, Search, Trash2, X } from "lucide-react";
+import { HelpCircle, Plus, Save, Trash2 } from "lucide-react";
 import { useDepot } from "@/lib/store";
 import { AvatarBadge } from "@/components/avatar-badge";
 import { Button } from "@/components/ui/button";
-import { ORDER_PRIORITIES, type OrderPriority } from "@/lib/types";
+import { LookupField } from "@/components/lookup-field";
+import { ORDER_PRIORITIES, STAFF, type OrderPriority, type StaffMember } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface DraftLine {
   productId: string;
   qty: number;
+  query: string;
 }
 
 function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
@@ -37,79 +39,6 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 const inputClass =
   "h-9 w-full border border-rule bg-card px-2.5 text-sm text-ink outline-none focus-visible:border-primary";
 
-/** A TDX-style lookup field: text input plus attached search/clear buttons, with a suggestion dropdown. */
-function LookupField({
-  value,
-  onChange,
-  placeholder,
-  suggestions,
-  onSelectSuggestion,
-  onClear,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  suggestions: string[];
-  onSelectSuggestion: (v: string) => void;
-  onClear: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const showSuggestions = open && suggestions.length > 0;
-
-  return (
-    <div className="relative">
-      <div className="flex items-stretch border border-rule bg-card focus-within:border-primary">
-        <input
-          value={value}
-          onChange={(e) => {
-            onChange(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => window.setTimeout(() => setOpen(false), 150)}
-          placeholder={placeholder}
-          className="h-9 min-w-0 flex-1 bg-transparent px-2.5 text-sm text-ink outline-none placeholder:text-ink-faint"
-        />
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Search"
-          className="flex w-9 shrink-0 items-center justify-center border-l border-rule text-solid-blue hover:bg-secondary"
-        >
-          <Search className="size-4" />
-        </button>
-        <button
-          type="button"
-          onClick={onClear}
-          aria-label="Clear"
-          className="flex w-9 shrink-0 items-center justify-center border-l border-rule text-solid-red hover:bg-secondary"
-        >
-          <X className="size-4" />
-        </button>
-      </div>
-      {showSuggestions && (
-        <ul className="absolute z-10 mt-0.5 w-full border border-rule bg-card shadow-sm">
-          {suggestions.map((s) => (
-            <li key={s}>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  onSelectSuggestion(s);
-                  setOpen(false);
-                }}
-                className="block w-full px-2.5 py-1.5 text-left text-sm text-ink hover:bg-secondary"
-              >
-                {s}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 export default function NewOrderPage() {
   const { data, createOrder } = useDepot();
   const router = useRouter();
@@ -117,8 +46,12 @@ export default function NewOrderPage() {
   const [customer, setCustomer] = useState("");
   const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [priority, setPriority] = useState<OrderPriority>("Medium");
+  const [requestedBy, setRequestedBy] = useState<StaffMember>("Unassigned");
+  const [requestedByQuery, setRequestedByQuery] = useState("Unassigned");
+  const [assignedTo, setAssignedTo] = useState<StaffMember>("Unassigned");
+  const [assignedToQuery, setAssignedToQuery] = useState("Unassigned");
   const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<DraftLine[]>([{ productId: "", qty: 1 }]);
+  const [lines, setLines] = useState<DraftLine[]>([{ productId: "", qty: 1, query: "" }]);
   const [error, setError] = useState<string | null>(null);
 
   const recentOrders = useMemo(() => {
@@ -127,19 +60,36 @@ export default function NewOrderPage() {
     return data.orders.filter((o) => o.customer.toLowerCase().includes(q)).slice(0, 5);
   }, [data.orders, customer]);
 
-  const customerSuggestions = useMemo(() => {
+  const customerOptions = useMemo(() => {
     const q = customer.trim().toLowerCase();
     if (!q) return [];
     const names = Array.from(new Set(data.orders.map((o) => o.customer)));
-    return names.filter((n) => n.toLowerCase().includes(q) && n.toLowerCase() !== q).slice(0, 5);
+    return names
+      .filter((n) => n.toLowerCase().includes(q) && n.toLowerCase() !== q)
+      .slice(0, 5)
+      .map((n) => ({ id: n, label: n }));
   }, [data.orders, customer]);
+
+  function staffOptions(query: string) {
+    const q = query.trim().toLowerCase();
+    return STAFF.filter((s) => !q || s.toLowerCase().includes(q)).map((s) => ({ id: s, label: s }));
+  }
+
+  function productOptions(query: string) {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return data.products
+      .filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))
+      .slice(0, 8)
+      .map((p) => ({ id: p.id, label: p.name, sublabel: p.sku }));
+  }
 
   function updateLine(index: number, patch: Partial<DraftLine>) {
     setLines((prev) => prev.map((l, i) => (i === index ? { ...l, ...patch } : l)));
   }
 
   function addLine() {
-    setLines((prev) => [...prev, { productId: "", qty: 1 }]);
+    setLines((prev) => [...prev, { productId: "", qty: 1, query: "" }]);
   }
 
   function removeLine(index: number) {
@@ -166,12 +116,14 @@ export default function NewOrderPage() {
       items: validLines.map((l) => ({ productId: l.productId, qty: l.qty })),
       priority,
       notes,
+      requestedBy,
+      assignedTo,
     });
     router.push("/orders");
   }
 
   return (
-    <div>
+    <div className="pb-16">
       <div className="mb-6 flex items-center gap-3">
         <Button onClick={handleSave}>
           <Save className="size-3.5" />
@@ -189,7 +141,6 @@ export default function NewOrderPage() {
       )}
 
       <h1 className="text-2xl font-semibold text-ink">New Order</h1>
-      <p className="mt-1 text-sm text-ink-faint">Classification: Customer Order</p>
 
       <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
@@ -197,11 +148,11 @@ export default function NewOrderPage() {
           <div className="max-w-xl">
             <FieldLabel required>Customer</FieldLabel>
             <LookupField
-              value={customer}
-              onChange={setCustomer}
+              query={customer}
+              onQueryChange={setCustomer}
               placeholder="Start typing a customer name or ID..."
-              suggestions={customerSuggestions}
-              onSelectSuggestion={setCustomer}
+              options={customerOptions}
+              onSelect={(opt) => setCustomer(opt.label)}
               onClear={() => setCustomer("")}
             />
             <label className="mt-2 flex items-center gap-2 text-sm text-ink-soft">
@@ -223,18 +174,15 @@ export default function NewOrderPage() {
                 const product = data.products.find((p) => p.id === line.productId);
                 return (
                   <div key={idx} className="flex flex-wrap items-center gap-2">
-                    <select
-                      value={line.productId}
-                      onChange={(e) => updateLine(idx, { productId: e.target.value })}
-                      className={cn(inputClass, "max-w-xs flex-1")}
-                    >
-                      <option value="">Select a product...</option>
-                      {data.products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.sku})
-                        </option>
-                      ))}
-                    </select>
+                    <LookupField
+                      query={line.query}
+                      onQueryChange={(q) => updateLine(idx, { query: q, productId: "" })}
+                      placeholder="Search a product or SKU..."
+                      options={productOptions(line.query)}
+                      onSelect={(opt) => updateLine(idx, { productId: opt.id, query: opt.label })}
+                      onClear={() => updateLine(idx, { productId: "", query: "" })}
+                      className="max-w-xs flex-1"
+                    />
                     <input
                       type="number"
                       min={1}
@@ -280,7 +228,7 @@ export default function NewOrderPage() {
           </div>
 
           <SectionHeading>Fulfillment Details</SectionHeading>
-          <div className="grid max-w-md grid-cols-2 gap-4">
+          <div className="grid max-w-xl grid-cols-2 gap-4">
             <div>
               <FieldLabel>Priority</FieldLabel>
               <select
@@ -299,7 +247,46 @@ export default function NewOrderPage() {
               <FieldLabel>Status</FieldLabel>
               <div className={cn(inputClass, "flex items-center text-ink-soft")}>New</div>
             </div>
+            <div>
+              <FieldLabel>Requested By</FieldLabel>
+              <LookupField
+                query={requestedByQuery}
+                onQueryChange={setRequestedByQuery}
+                placeholder="Start typing a name..."
+                options={staffOptions(requestedByQuery)}
+                onSelect={(opt) => {
+                  setRequestedBy(opt.id as StaffMember);
+                  setRequestedByQuery(opt.label);
+                }}
+                onClear={() => {
+                  setRequestedBy("Unassigned");
+                  setRequestedByQuery("Unassigned");
+                }}
+              />
+            </div>
+            <div>
+              <FieldLabel>Assigned To</FieldLabel>
+              <LookupField
+                query={assignedToQuery}
+                onQueryChange={setAssignedToQuery}
+                placeholder="Start typing a name..."
+                options={staffOptions(assignedToQuery)}
+                onSelect={(opt) => {
+                  setAssignedTo(opt.id as StaffMember);
+                  setAssignedToQuery(opt.label);
+                }}
+                onClear={() => {
+                  setAssignedTo("Unassigned");
+                  setAssignedToQuery("Unassigned");
+                }}
+              />
+            </div>
           </div>
+
+          <Button className="mt-8" onClick={handleSave}>
+            <Save className="size-3.5" />
+            Create Ticket
+          </Button>
         </div>
 
         <div className="flex flex-col gap-4">
